@@ -443,6 +443,14 @@ input[type="range"] {
   grid-column: 1 / -1;
 }
 
+.palette-preset-field {
+  grid-column: 1 / -1;
+}
+
+.palette-preset-field select {
+  width: 100%;
+}
+
 .palette-color-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -4445,7 +4453,19 @@ body[data-theme="light"] .theme-toggle:focus-visible {
         <section class="panel" aria-label="&#25511;&#21046;&#38754;&#26495;">
           <div class="panel-scroll">
           <div class="controls">
+          <section class="control-section palette-section" aria-label="&#33394;&#31995;">
+            <h2 class="control-section-title">&#33394;&#31995;</h2>
+            <label class="field palette-preset-field" for="palettePreset"><span>&#24403;&#21069;&#33394;&#31995;</span><select id="palettePreset"><option value="built-in-0">烟岚新翠</option></select></label>
 
+            <div class="palette-color-grid" aria-label="&#33394;&#31995;">
+              <label><span class="palette-role">底色/主色</span><span class="palette-code">#EEF5F1</span><input class="palette-color-input" data-palette-index="2" type="color" value="#EEF5F1"></label>
+              <label><span class="palette-role">主色1</span><span class="palette-code">#A2BBB3</span><input class="palette-color-input" data-palette-index="0" type="color" value="#A2BBB3"></label>
+              <label><span class="palette-role">主色2</span><span class="palette-code">#5E9CBA</span><input class="palette-color-input" data-palette-index="1" type="color" value="#5E9CBA"></label>
+              <label><span class="palette-role">辅色</span><span class="palette-code">#9A7B32</span><input class="palette-color-input" data-palette-index="3" type="color" value="#9A7B32"></label>
+              <label><span class="palette-role">点缀色</span><span class="palette-code">#DAF386</span><input class="palette-color-input" data-palette-index="4" type="color" value="#DAF386"></label>
+            </div>
+
+          </section>
           <section class="control-section skeleton-section" aria-label="&#39592;&#26550;">
             <h2 class="control-section-title">&#39592;&#26550;</h2>
             <label class="field" for="layoutSelect"><span>&#39592;&#26550;&#25490;&#29256;&#32467;&#26500;</span><select id="layoutSelect" class="native-select"><option value="random">&#38543;&#26426;&#25490;&#29256;</option><option value="0">&#22235;&#38533;&#20132;&#38169;&#24335;</option><option value="1">&#20843;&#36798;&#26197;&#24335;</option><option value="2">&#22235;&#36798;&#26197;&#24335;</option><option value="3">&#26041;&#26684;&#22635;&#33457;&#24335;</option><option value="4">&#20843;&#35282;&#22635;&#33457;&#24335;</option><option value="5">&#29699;&#36335;&#36830;&#32493;&#24335;</option><option value="6">&#40863;&#32972;&#36830;&#32493;&#24335;</option><option value="7">&#33777;&#26684;&#22635;&#33457;&#24335;</option><option value="8">&#30424;&#32486;&#36830;&#29615;&#24335;</option></select><div class="option-strip" data-select-target="layoutSelect" role="listbox" aria-label="&#39592;&#26550;&#25490;&#29256;&#32467;&#26500;"></div></label>
@@ -4495,8 +4515,17 @@ const DEFAULT_SKELETON_TOTAL_WIDTH = 18;
 const DIAMOND_FILL_DEFAULT_SKELETON_WIDTH = 8;
 const DIAMOND_FILL_EXTENSION_WIDTH = 54;
 
-const defaultPalette = ["#89B29C", "#D2E3E2", "#FDF7F2", "#C7CB45", "#F98B3F"];
-const defaultPaletteLabels = ["\u9752\u7eff", "\u6d45\u9752", "\u7c73\u767d", "\u9ec4\u7eff", "\u6a59\u8272"];
+const builtInPalettes = [
+  { name: "\u70df\u5c9a\u65b0\u7fe0", colors: ["#A2BBB3", "#5E9CBA", "#EEF5F1", "#9A7B32", "#DAF386"] },
+  { name: "\u6a59\u91d1\u79cb\u5b9e", colors: ["#EEA04C", "#9D7939", "#CF8C20", "#4C594D", "#B0B087"] },
+  { name: "\u9752\u74f7\u5c71\u5f71", colors: ["#DCCEA9", "#A8C6C6", "#A6B976", "#303649", "#9F5033"] },
+  { name: "\u8910\u5ca9\u6708\u767d", colors: ["#91633B", "#404644", "#ADB18C", "#F7E4AC", "#A3CED6"] },
+  { name: "\u51b0\u6e56\u7d2b\u85e4", colors: ["#7DCFD1", "#FEFAFF", "#C5F1EB", "#8461B1", "#ECD999"] },
+  { name: "\u591c\u9676\u6674\u84dd", colors: ["#E5CDAC", "#D9723A", "#231A10", "#1C8CC3", "#E1AA9F"] },
+  { name: "\u96ea\u539f\u6731\u58a8", colors: ["#8ED6F4", "#DC2F16", "#FDFAE0", "#040000", "#EDF7D7"] },
+];
+const defaultPalette = builtInPalettes[0].colors;
+const defaultPaletteLabels = ["\u4e3b\u82721", "\u4e3b\u82722", "\u5e95\u8272/\u4e3b\u8272", "\u8f85\u8272", "\u70b9\u7f00\u8272"];
 let targetColors = [...defaultPalette];
 let currentPaletteKey = "default";
 const templateColors = ["#FF0000", "#00FF00", "#FFA500", "#FF00FF", "#0000FF"];
@@ -4946,15 +4975,20 @@ function setSavedPalettes(palettes) {
 function renderPalettePresetOptions() {
   if (!palettePresetSelect) return;
   const saved = getSavedPalettes();
-  palettePresetSelect.replaceChildren(new Option("\u9526\u5e8f\u65b0\u751f", "default"));
-  saved.forEach((palette, index) => {
-    palettePresetSelect.append(new Option(palette.name, String(index)));
+  palettePresetSelect.replaceChildren();
+  builtInPalettes.forEach((palette, index) => {
+    palettePresetSelect.append(new Option(palette.name, `built-in-${index}`));
   });
+  if (IS_DEVELOPER_VERSION) {
+    saved.forEach((palette, index) => {
+      palettePresetSelect.append(new Option(palette.name, `saved-${index}`));
+    });
+  }
 }
 
 function applyPalette(colors, name = "") {
   targetColors = colors.map(normalizeHex);
-  currentPaletteKey = isDefaultPalette() ? "default" : "custom";
+  currentPaletteKey = isDefaultPalette() ? "built-in-0" : "custom";
   if (paletteNameInput && name) {
     paletteNameInput.value = name;
   }
@@ -4973,6 +5007,7 @@ function applyPalette(colors, name = "") {
 }
 
 function saveCurrentPalette() {
+  if (!IS_DEVELOPER_VERSION) return;
   const name = (paletteNameInput && paletteNameInput.value.trim()) || "\u81ea\u5b9a\u4e49\u8272\u7cfb";
   const saved = getSavedPalettes();
   const existingIndex = saved.findIndex((palette) => palette.name === name);
@@ -4985,33 +5020,33 @@ function saveCurrentPalette() {
   setSavedPalettes(saved);
   renderPalettePresetOptions();
   if (palettePresetSelect) {
-    palettePresetSelect.value = String(saved.findIndex((palette) => palette.name === name));
+    palettePresetSelect.value = `saved-${saved.findIndex((palette) => palette.name === name)}`;
   }
 }
 
 function renameCurrentPalette() {
-  if (!palettePresetSelect || palettePresetSelect.value === "default") return;
+  if (!IS_DEVELOPER_VERSION || !palettePresetSelect || !palettePresetSelect.value.startsWith("saved-")) return;
   const name = paletteNameInput && paletteNameInput.value.trim();
   if (!name) return;
   const saved = getSavedPalettes();
-  const index = Number(palettePresetSelect.value);
+  const index = Number(palettePresetSelect.value.replace("saved-", ""));
   if (!saved[index]) return;
   saved[index] = { ...saved[index], name };
   setSavedPalettes(saved);
   renderPalettePresetOptions();
-  palettePresetSelect.value = String(index);
+  palettePresetSelect.value = `saved-${index}`;
 }
 
 function deleteCurrentPalette() {
-  if (!palettePresetSelect || palettePresetSelect.value === "default") return;
+  if (!IS_DEVELOPER_VERSION || !palettePresetSelect || !palettePresetSelect.value.startsWith("saved-")) return;
   const saved = getSavedPalettes();
-  const index = Number(palettePresetSelect.value);
+  const index = Number(palettePresetSelect.value.replace("saved-", ""));
   if (!saved[index]) return;
   saved.splice(index, 1);
   setSavedPalettes(saved);
   renderPalettePresetOptions();
-  applyPalette(defaultPalette, "\u9526\u5e8f\u65b0\u751f");
-  palettePresetSelect.value = "default";
+  applyPalette(defaultPalette, builtInPalettes[0].name);
+  palettePresetSelect.value = "built-in-0";
 }
 
 function applyPaletteChange() {
@@ -7958,12 +7993,14 @@ paletteColorInputs.forEach((input) => {
 });
 if (palettePresetSelect) {
   palettePresetSelect.addEventListener("change", () => {
-    if (palettePresetSelect.value === "default") {
-      applyPalette(defaultPalette, "\u9526\u5e8f\u65b0\u751f");
+    if (palettePresetSelect.value.startsWith("built-in-")) {
+      const palette = builtInPalettes[Number(palettePresetSelect.value.replace("built-in-", ""))] || builtInPalettes[0];
+      applyPalette(palette.colors, palette.name);
       return;
     }
-    const palette = getSavedPalettes()[Number(palettePresetSelect.value)];
-    if (palette) {
+    if (IS_DEVELOPER_VERSION && palettePresetSelect.value.startsWith("saved-")) {
+      const palette = getSavedPalettes()[Number(palettePresetSelect.value.replace("saved-", ""))];
+      if (!palette) return;
       applyPalette(palette.colors, palette.name);
     }
   });

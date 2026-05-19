@@ -8,8 +8,17 @@ const DEFAULT_SKELETON_TOTAL_WIDTH = 18;
 const DIAMOND_FILL_DEFAULT_SKELETON_WIDTH = 8;
 const DIAMOND_FILL_EXTENSION_WIDTH = 54;
 
-const defaultPalette = ["#89B29C", "#D2E3E2", "#FDF7F2", "#C7CB45", "#F98B3F"];
-const defaultPaletteLabels = ["\u9752\u7eff", "\u6d45\u9752", "\u7c73\u767d", "\u9ec4\u7eff", "\u6a59\u8272"];
+const builtInPalettes = [
+  { name: "\u70df\u5c9a\u65b0\u7fe0", colors: ["#A2BBB3", "#5E9CBA", "#EEF5F1", "#9A7B32", "#DAF386"] },
+  { name: "\u6a59\u91d1\u79cb\u5b9e", colors: ["#EEA04C", "#9D7939", "#CF8C20", "#4C594D", "#B0B087"] },
+  { name: "\u9752\u74f7\u5c71\u5f71", colors: ["#DCCEA9", "#A8C6C6", "#A6B976", "#303649", "#9F5033"] },
+  { name: "\u8910\u5ca9\u6708\u767d", colors: ["#91633B", "#404644", "#ADB18C", "#F7E4AC", "#A3CED6"] },
+  { name: "\u51b0\u6e56\u7d2b\u85e4", colors: ["#7DCFD1", "#FEFAFF", "#C5F1EB", "#8461B1", "#ECD999"] },
+  { name: "\u591c\u9676\u6674\u84dd", colors: ["#E5CDAC", "#D9723A", "#231A10", "#1C8CC3", "#E1AA9F"] },
+  { name: "\u96ea\u539f\u6731\u58a8", colors: ["#8ED6F4", "#DC2F16", "#FDFAE0", "#040000", "#EDF7D7"] },
+];
+const defaultPalette = builtInPalettes[0].colors;
+const defaultPaletteLabels = ["\u4e3b\u82721", "\u4e3b\u82722", "\u5e95\u8272/\u4e3b\u8272", "\u8f85\u8272", "\u70b9\u7f00\u8272"];
 let targetColors = [...defaultPalette];
 let currentPaletteKey = "default";
 const templateColors = ["#FF0000", "#00FF00", "#FFA500", "#FF00FF", "#0000FF"];
@@ -459,15 +468,20 @@ function setSavedPalettes(palettes) {
 function renderPalettePresetOptions() {
   if (!palettePresetSelect) return;
   const saved = getSavedPalettes();
-  palettePresetSelect.replaceChildren(new Option("\u9526\u5e8f\u65b0\u751f", "default"));
-  saved.forEach((palette, index) => {
-    palettePresetSelect.append(new Option(palette.name, String(index)));
+  palettePresetSelect.replaceChildren();
+  builtInPalettes.forEach((palette, index) => {
+    palettePresetSelect.append(new Option(palette.name, `built-in-${index}`));
   });
+  if (IS_DEVELOPER_VERSION) {
+    saved.forEach((palette, index) => {
+      palettePresetSelect.append(new Option(palette.name, `saved-${index}`));
+    });
+  }
 }
 
 function applyPalette(colors, name = "") {
   targetColors = colors.map(normalizeHex);
-  currentPaletteKey = isDefaultPalette() ? "default" : "custom";
+  currentPaletteKey = isDefaultPalette() ? "built-in-0" : "custom";
   if (paletteNameInput && name) {
     paletteNameInput.value = name;
   }
@@ -486,6 +500,7 @@ function applyPalette(colors, name = "") {
 }
 
 function saveCurrentPalette() {
+  if (!IS_DEVELOPER_VERSION) return;
   const name = (paletteNameInput && paletteNameInput.value.trim()) || "\u81ea\u5b9a\u4e49\u8272\u7cfb";
   const saved = getSavedPalettes();
   const existingIndex = saved.findIndex((palette) => palette.name === name);
@@ -498,33 +513,33 @@ function saveCurrentPalette() {
   setSavedPalettes(saved);
   renderPalettePresetOptions();
   if (palettePresetSelect) {
-    palettePresetSelect.value = String(saved.findIndex((palette) => palette.name === name));
+    palettePresetSelect.value = `saved-${saved.findIndex((palette) => palette.name === name)}`;
   }
 }
 
 function renameCurrentPalette() {
-  if (!palettePresetSelect || palettePresetSelect.value === "default") return;
+  if (!IS_DEVELOPER_VERSION || !palettePresetSelect || !palettePresetSelect.value.startsWith("saved-")) return;
   const name = paletteNameInput && paletteNameInput.value.trim();
   if (!name) return;
   const saved = getSavedPalettes();
-  const index = Number(palettePresetSelect.value);
+  const index = Number(palettePresetSelect.value.replace("saved-", ""));
   if (!saved[index]) return;
   saved[index] = { ...saved[index], name };
   setSavedPalettes(saved);
   renderPalettePresetOptions();
-  palettePresetSelect.value = String(index);
+  palettePresetSelect.value = `saved-${index}`;
 }
 
 function deleteCurrentPalette() {
-  if (!palettePresetSelect || palettePresetSelect.value === "default") return;
+  if (!IS_DEVELOPER_VERSION || !palettePresetSelect || !palettePresetSelect.value.startsWith("saved-")) return;
   const saved = getSavedPalettes();
-  const index = Number(palettePresetSelect.value);
+  const index = Number(palettePresetSelect.value.replace("saved-", ""));
   if (!saved[index]) return;
   saved.splice(index, 1);
   setSavedPalettes(saved);
   renderPalettePresetOptions();
-  applyPalette(defaultPalette, "\u9526\u5e8f\u65b0\u751f");
-  palettePresetSelect.value = "default";
+  applyPalette(defaultPalette, builtInPalettes[0].name);
+  palettePresetSelect.value = "built-in-0";
 }
 
 function applyPaletteChange() {
@@ -3471,12 +3486,14 @@ paletteColorInputs.forEach((input) => {
 });
 if (palettePresetSelect) {
   palettePresetSelect.addEventListener("change", () => {
-    if (palettePresetSelect.value === "default") {
-      applyPalette(defaultPalette, "\u9526\u5e8f\u65b0\u751f");
+    if (palettePresetSelect.value.startsWith("built-in-")) {
+      const palette = builtInPalettes[Number(palettePresetSelect.value.replace("built-in-", ""))] || builtInPalettes[0];
+      applyPalette(palette.colors, palette.name);
       return;
     }
-    const palette = getSavedPalettes()[Number(palettePresetSelect.value)];
-    if (palette) {
+    if (IS_DEVELOPER_VERSION && palettePresetSelect.value.startsWith("saved-")) {
+      const palette = getSavedPalettes()[Number(palettePresetSelect.value.replace("saved-", ""))];
+      if (!palette) return;
       applyPalette(palette.colors, palette.name);
     }
   });

@@ -436,6 +436,14 @@ input[type="range"] {
   grid-column: 1 / -1;
 }
 
+.palette-preset-field {
+  grid-column: 1 / -1;
+}
+
+.palette-preset-field select {
+  width: 100%;
+}
+
 .palette-color-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));

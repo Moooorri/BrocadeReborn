@@ -125,23 +125,30 @@ const T = {
   assetInfo: "&#22270;&#20803;",
 };
 
-function buildPaletteSectionHtml() {
-  return `          <section class="control-section palette-section" aria-label="${T.colorSection}">
-            <h2 class="control-section-title">${T.colorSection}</h2>
-            <label class="field" for="palettePreset"><span>${T.palettePreset}</span><select id="palettePreset"><option value="default">${T.title}</option></select></label>
-            <label class="field" for="paletteName"><span>${T.paletteName}</span><input id="paletteName" class="text-input" type="text" value="${T.title}"></label>
-            <div class="palette-color-grid" aria-label="${T.colorSection}">
-              <label><span class="palette-role">底色/主色</span><span class="palette-code">#FDF7F2</span><input class="palette-color-input" data-palette-index="2" type="color" value="#FDF7F2"></label>
-              <label><span class="palette-role">主色1</span><span class="palette-code">#89B29C</span><input class="palette-color-input" data-palette-index="0" type="color" value="#89B29C"></label>
-              <label><span class="palette-role">主色2</span><span class="palette-code">#D2E3E2</span><input class="palette-color-input" data-palette-index="1" type="color" value="#D2E3E2"></label>
-              <label><span class="palette-role">辅色</span><span class="palette-code">#C7CB45</span><input class="palette-color-input" data-palette-index="3" type="color" value="#C7CB45"></label>
-              <label><span class="palette-role">点缀色</span><span class="palette-code">#F98B3F</span><input class="palette-color-input" data-palette-index="4" type="color" value="#F98B3F"></label>
-            </div>
-            <div class="palette-actions">
+function buildPaletteSectionHtml(mode) {
+  const developerControls = mode === "developer"
+    ? `            <label class="field" for="paletteName"><span>${T.paletteName}</span><input id="paletteName" class="text-input" type="text" value="${T.title}"></label>`
+    : "";
+  const developerActions = mode === "developer"
+    ? `            <div class="palette-actions">
               <button id="savePaletteBtn" class="small-button" type="button">${T.savePalette}</button>
               <button id="renamePaletteBtn" class="small-button" type="button">${T.renamePalette}</button>
               <button id="deletePaletteBtn" class="small-button danger" type="button">${T.deletePalette}</button>
+            </div>`
+    : "";
+
+  return `          <section class="control-section palette-section" aria-label="${T.colorSection}">
+            <h2 class="control-section-title">${T.colorSection}</h2>
+            <label class="field palette-preset-field" for="palettePreset"><span>${T.palettePreset}</span><select id="palettePreset"><option value="built-in-0">烟岚新翠</option></select></label>
+${developerControls}
+            <div class="palette-color-grid" aria-label="${T.colorSection}">
+              <label><span class="palette-role">底色/主色</span><span class="palette-code">#EEF5F1</span><input class="palette-color-input" data-palette-index="2" type="color" value="#EEF5F1"></label>
+              <label><span class="palette-role">主色1</span><span class="palette-code">#A2BBB3</span><input class="palette-color-input" data-palette-index="0" type="color" value="#A2BBB3"></label>
+              <label><span class="palette-role">主色2</span><span class="palette-code">#5E9CBA</span><input class="palette-color-input" data-palette-index="1" type="color" value="#5E9CBA"></label>
+              <label><span class="palette-role">辅色</span><span class="palette-code">#9A7B32</span><input class="palette-color-input" data-palette-index="3" type="color" value="#9A7B32"></label>
+              <label><span class="palette-role">点缀色</span><span class="palette-code">#DAF386</span><input class="palette-color-input" data-palette-index="4" type="color" value="#DAF386"></label>
             </div>
+${developerActions}
           </section>`;
 }
 
@@ -165,7 +172,7 @@ function buildExportDialogHtml(mode) {
 }
 
 function buildHtml(css, assets, app, { mode }) {
-  const paletteSection = mode === "developer" ? buildPaletteSectionHtml() : "";
+  const paletteSection = buildPaletteSectionHtml(mode);
   const exportDialog = buildExportDialogHtml(mode);
 
   return `<!doctype html>
