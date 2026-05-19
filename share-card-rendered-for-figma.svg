@@ -1,0 +1,100 @@
+<svg width="440" height="820" viewBox="0 0 440 820" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="cardGrid" width="42" height="42" patternUnits="userSpaceOnUse">
+      <path d="M42 0H0V42" stroke="#D9EADF" stroke-width="1"/>
+    </pattern>
+
+    <g id="largeMedallion">
+      <circle cx="0" cy="0" r="36" fill="#F8FAF1" stroke="#8AB2A0" stroke-width="4"/>
+      <path d="M0 -28C9 -15 21 -9 34 -8C22 -2 16 8 13 22C7 11 -3 6 -18 5C-8 -1 -2 -11 0 -28Z" fill="#C7CB45" opacity=".9"/>
+      <path d="M0 28C-9 15 -21 9 -34 8C-22 2 -16 -8 -13 -22C-7 -11 3 -6 18 -5C8 1 2 11 0 28Z" fill="#C7CB45" opacity=".9"/>
+      <path d="M-28 0C-15 -9 -9 -21 -8 -34C-2 -22 8 -16 22 -13C11 -7 6 3 5 18C-1 8 -11 2 -28 0Z" fill="#C7CB45" opacity=".9"/>
+      <path d="M28 0C15 9 9 21 8 34C2 22 -8 16 -22 13C-11 7 -6 -3 -5 -18C1 -8 11 -2 28 0Z" fill="#C7CB45" opacity=".9"/>
+      <circle cx="0" cy="0" r="11" fill="#DDE9E2"/>
+    </g>
+
+    <g id="smallRound">
+      <circle cx="0" cy="0" r="24" fill="#FBFCF4" stroke="#8AB2A0" stroke-width="3"/>
+      <path d="M0 -19C6 -9 14 -5 21 -4C12 1 9 7 7 16C3 9 -4 4 -13 3C-6 -1 -1 -8 0 -19Z" fill="#C7CB45"/>
+      <path d="M0 19C-6 9 -14 5 -21 4C-12 -1 -9 -7 -7 -16C-3 -9 4 -4 13 -3C6 1 1 8 0 19Z" fill="#C7CB45"/>
+      <path d="M-19 0C-9 -6 -5 -14 -4 -21C1 -12 7 -9 16 -7C9 -3 4 4 3 13C-1 6 -8 1 -19 0Z" fill="#C7CB45"/>
+      <path d="M19 0C9 6 5 14 4 21C-1 12 -7 9 -16 7C-9 3 -4 -4 -3 -13C1 -6 8 -1 19 0Z" fill="#C7CB45"/>
+    </g>
+
+    <g id="smallSquare">
+      <rect x="-16" y="-16" width="32" height="32" rx="2" fill="#FBFCF4" stroke="#C7CB45" stroke-width="3"/>
+      <path d="M-10 0C-5 -5 -2 -9 0 -14C2 -9 5 -5 10 0C5 5 2 9 0 14C-2 9 -5 5 -10 0Z" fill="#C7CB45"/>
+      <path d="M-14 -14C-7 -8 -3 -4 0 0C3 -4 7 -8 14 -14" stroke="#F98B3F" stroke-width="2" fill="none"/>
+      <path d="M-14 14C-7 8 -3 4 0 0C3 4 7 8 14 14" stroke="#F98B3F" stroke-width="2" fill="none"/>
+    </g>
+
+    <pattern id="renderedPattern" width="142" height="112" patternUnits="userSpaceOnUse">
+      <rect width="142" height="112" fill="#FDF7F2"/>
+      <path d="M0 56H142M71 0V112" stroke="#8AB2A0" stroke-width="3" opacity=".7"/>
+      <path d="M0 0L142 112M142 0L0 112" stroke="#8AB2A0" stroke-width="3" opacity=".65"/>
+      <path d="M20 14C32 14 44 0 58 0M84 0C98 0 110 14 122 14M20 98C32 98 44 112 58 112M84 112C98 112 110 98 122 98" stroke="#F98B3F" stroke-width="3" fill="none" opacity=".75"/>
+      <use href="#largeMedallion" x="0" y="0" transform="translate(0 0)"/>
+      <use href="#largeMedallion" transform="translate(142 0)"/>
+      <use href="#largeMedallion" transform="translate(0 112)"/>
+      <use href="#largeMedallion" transform="translate(142 112)"/>
+      <use href="#smallRound" transform="translate(71 0)"/>
+      <use href="#smallRound" transform="translate(71 112)"/>
+      <use href="#smallSquare" transform="translate(71 56)"/>
+    </pattern>
+
+    <style>
+      .serif { font-family: "Songti SC", "SimSun", "Noto Serif CJK SC", serif; }
+      .sans { font-family: "Noto Sans CJK SC", "Microsoft YaHei", sans-serif; }
+      .mono { font-family: Consolas, "Courier New", monospace; letter-spacing: .08em; }
+      .muted { fill: #759285; }
+      .ink { fill: #173C39; }
+      .accent { fill: #7BA897; }
+    </style>
+  </defs>
+
+  <rect width="440" height="820" fill="#EEF7F0"/>
+  <rect x="0.5" y="0.5" width="439" height="819" stroke="#6F9F8D"/>
+
+  <rect x="20" y="20" width="400" height="420" fill="#F8FCF5"/>
+  <rect x="42" y="42" width="356" height="356" fill="url(#renderedPattern)" stroke="#8AB2A0" stroke-width="2"/>
+  <rect x="20" y="20" width="400" height="420" fill="url(#cardGrid)" opacity=".65"/>
+
+  <rect x="20" y="440" width="400" height="360" fill="#F3F9F1"/>
+  <rect x="20.5" y="440.5" width="399" height="359" stroke="#D4E6D9"/>
+
+  <g transform="translate(48 482)">
+    <text class="sans muted" font-size="14">锦序新生纹样卡</text>
+    <text class="serif ink" x="0" y="42" font-size="28" font-weight="700">方格填花式</text>
+    <text class="sans ink" x="0" y="78" font-size="19" opacity=".76">夹色三重骨线</text>
+
+    <g transform="translate(0 108)">
+      <rect x="-12" y="-12" width="24" height="24" fill="#8AB2A0" transform="rotate(45)"/>
+      <circle cx="52" cy="0" r="13" fill="none" stroke="#7BA897" stroke-width="1.2"/>
+      <rect x="102" y="-12" width="24" height="24" fill="none" stroke="#7BA897" stroke-width="4"/>
+      <path d="M105 -9L123 9M123 -9L105 9" stroke="#7BA897" stroke-width="3"/>
+      <rect x="154" y="-14" width="28" height="28" fill="#8AB2A0" transform="rotate(45 168 0)"/>
+      <circle cx="216" cy="0" r="13" fill="none" stroke="#7BA897" stroke-width="1.2"/>
+    </g>
+
+    <text class="mono muted" y="154" font-size="17" font-weight="700">JXNS-WBR0EW</text>
+
+    <g class="sans" font-size="15">
+      <text class="muted" x="0" y="196">核心图元</text>
+      <text class="ink" x="84" y="196" font-weight="700">Sb5 / Sc10</text>
+      <text class="muted" x="0" y="226">骨架结构</text>
+      <text class="ink" x="84" y="226" font-weight="700">方格填花式天华锦骨架</text>
+      <text class="muted" x="0" y="256">地纹类型</text>
+      <text class="ink" x="84" y="256" font-weight="700">锁子地纹</text>
+      <text class="muted" x="0" y="286">色彩组合</text>
+      <text class="ink" x="84" y="286" font-weight="700">橙色 / 米白</text>
+    </g>
+
+    <path d="M0 306H344" stroke="#9BC1AE"/>
+    <text class="sans ink" x="0" y="326" font-size="16">以方格单元分割画面，并在格内填入主体图形。</text>
+  </g>
+
+  <g transform="translate(392 486)" fill="#7BA897">
+    <rect width="38" height="38" fill="#7BA897"/>
+    <path d="M6 6L19 16L32 6V16L22 19L32 32H22L19 22L6 32V22L16 19L6 16V6Z" fill="#F3F9F1"/>
+  </g>
+</svg>
