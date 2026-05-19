@@ -125,7 +125,49 @@ const T = {
   assetInfo: "&#22270;&#20803;",
 };
 
-function buildHtml(css, assets, app) {
+function buildPaletteSectionHtml() {
+  return `          <section class="control-section palette-section" aria-label="${T.colorSection}">
+            <h2 class="control-section-title">${T.colorSection}</h2>
+            <label class="field" for="palettePreset"><span>${T.palettePreset}</span><select id="palettePreset"><option value="default">${T.title}</option></select></label>
+            <label class="field" for="paletteName"><span>${T.paletteName}</span><input id="paletteName" class="text-input" type="text" value="${T.title}"></label>
+            <div class="palette-color-grid" aria-label="${T.colorSection}">
+              <label><span class="palette-role">底色/主色</span><span class="palette-code">#FDF7F2</span><input class="palette-color-input" data-palette-index="2" type="color" value="#FDF7F2"></label>
+              <label><span class="palette-role">主色1</span><span class="palette-code">#89B29C</span><input class="palette-color-input" data-palette-index="0" type="color" value="#89B29C"></label>
+              <label><span class="palette-role">主色2</span><span class="palette-code">#D2E3E2</span><input class="palette-color-input" data-palette-index="1" type="color" value="#D2E3E2"></label>
+              <label><span class="palette-role">辅色</span><span class="palette-code">#C7CB45</span><input class="palette-color-input" data-palette-index="3" type="color" value="#C7CB45"></label>
+              <label><span class="palette-role">点缀色</span><span class="palette-code">#F98B3F</span><input class="palette-color-input" data-palette-index="4" type="color" value="#F98B3F"></label>
+            </div>
+            <div class="palette-actions">
+              <button id="savePaletteBtn" class="small-button" type="button">${T.savePalette}</button>
+              <button id="renamePaletteBtn" class="small-button" type="button">${T.renamePalette}</button>
+              <button id="deletePaletteBtn" class="small-button danger" type="button">${T.deletePalette}</button>
+            </div>
+          </section>`;
+}
+
+function buildExportDialogHtml(mode) {
+  if (mode !== "developer") return "";
+
+  return `        <div id="exportImageDialog" class="export-image-dialog" hidden>
+          <div class="export-preview-frame"><canvas id="exportPreviewCanvas" width="800" height="800"></canvas></div>
+          <div class="export-layer-options" aria-label="${T.exportImage}">
+            <label><input type="checkbox" name="exportLayer" value="motifs" checked><span>${T.exportMotif}</span></label>
+            <label><input type="checkbox" name="exportLayer" value="skeleton" checked><span>${T.exportSkeleton}</span></label>
+            <label><input type="checkbox" name="exportLayer" value="ground" checked><span>${T.exportGround}</span></label>
+            <label><input type="checkbox" name="exportLayer" value="background" checked><span>${T.exportBackground}</span></label>
+          </div>
+          <div class="export-actions">
+            <button id="exportLayeredBtn" class="button accent alt" type="button">${T.exportLayers}</button>
+            <button id="exportCompositeBtn" class="button accent" type="button">${T.exportFull}</button>
+            <button id="exportSvgBtn" class="button accent alt" type="button">${T.exportSvg}</button>
+          </div>
+        </div>`;
+}
+
+function buildHtml(css, assets, app, { mode }) {
+  const paletteSection = mode === "developer" ? buildPaletteSectionHtml() : "";
+  const exportDialog = buildExportDialogHtml(mode);
+
   return `<!doctype html>
 <html lang="zh-CN">
 <head>
@@ -135,7 +177,7 @@ function buildHtml(css, assets, app) {
   <title>${T.title}</title>
   <style>${css}</style>
 </head>
-<body data-page="home">
+<body data-page="home" data-app-mode="${mode}">
   <main class="app-shell">
     <header class="top-nav" aria-label="&#39029;&#38754;&#23548;&#33322;">
       <button class="nav-pill" type="button" id="infoBtn">${T.infoNav}</button>
@@ -162,23 +204,7 @@ function buildHtml(css, assets, app) {
         <section class="panel" aria-label="${T.panel}">
           <div class="panel-scroll">
           <div class="controls">
-          <section class="control-section palette-section" aria-label="${T.colorSection}">
-            <h2 class="control-section-title">${T.colorSection}</h2>
-            <label class="field" for="palettePreset"><span>${T.palettePreset}</span><select id="palettePreset"><option value="default">${T.title}</option></select></label>
-            <label class="field" for="paletteName"><span>${T.paletteName}</span><input id="paletteName" class="text-input" type="text" value="${T.title}"></label>
-            <div class="palette-color-grid" aria-label="${T.colorSection}">
-              <label><span class="palette-role">底色/主色</span><span class="palette-code">#FDF7F2</span><input class="palette-color-input" data-palette-index="2" type="color" value="#FDF7F2"></label>
-              <label><span class="palette-role">主色1</span><span class="palette-code">#89B29C</span><input class="palette-color-input" data-palette-index="0" type="color" value="#89B29C"></label>
-              <label><span class="palette-role">主色2</span><span class="palette-code">#D2E3E2</span><input class="palette-color-input" data-palette-index="1" type="color" value="#D2E3E2"></label>
-              <label><span class="palette-role">辅色</span><span class="palette-code">#C7CB45</span><input class="palette-color-input" data-palette-index="3" type="color" value="#C7CB45"></label>
-              <label><span class="palette-role">点缀色</span><span class="palette-code">#F98B3F</span><input class="palette-color-input" data-palette-index="4" type="color" value="#F98B3F"></label>
-            </div>
-            <div class="palette-actions">
-              <button id="savePaletteBtn" class="small-button" type="button">${T.savePalette}</button>
-              <button id="renamePaletteBtn" class="small-button" type="button">${T.renamePalette}</button>
-              <button id="deletePaletteBtn" class="small-button danger" type="button">${T.deletePalette}</button>
-            </div>
-          </section>
+${paletteSection}
           <section class="control-section skeleton-section" aria-label="${T.skeletonSection}">
             <h2 class="control-section-title">${T.skeletonSection}</h2>
             <label class="field" for="layoutSelect"><span>${T.layout}</span><select id="layoutSelect" class="native-select"><option value="random">${T.randomLayout}</option><option value="0">${T.fourAround}</option><option value="1">${T.badayun}</option><option value="2">${T.sidayun}</option><option value="3">${T.squareTianhua}</option><option value="4">${T.octagonTianhua}</option><option value="5">${T.ball}</option><option value="6">${T.turtleback}</option><option value="7">${T.diamondFill}</option><option value="8">${T.interlockRibbon}</option></select><div class="option-strip" data-select-target="layoutSelect" role="listbox" aria-label="${T.layout}"></div></label>
@@ -205,20 +231,7 @@ function buildHtml(css, assets, app) {
         <button id="cardShareBtn" class="button card-share" type="button">${T.cardShare}</button>
         <button id="exportBtn" class="button accent" type="button">${T.exportImage}</button>
         <div id="recipeCardPreview" class="recipe-card-preview" hidden></div>
-        <div id="exportImageDialog" class="export-image-dialog" hidden>
-          <div class="export-preview-frame"><canvas id="exportPreviewCanvas" width="800" height="800"></canvas></div>
-          <div class="export-layer-options" aria-label="${T.exportImage}">
-            <label><input type="checkbox" name="exportLayer" value="motifs" checked><span>${T.exportMotif}</span></label>
-            <label><input type="checkbox" name="exportLayer" value="skeleton" checked><span>${T.exportSkeleton}</span></label>
-            <label><input type="checkbox" name="exportLayer" value="ground" checked><span>${T.exportGround}</span></label>
-            <label><input type="checkbox" name="exportLayer" value="background" checked><span>${T.exportBackground}</span></label>
-          </div>
-          <div class="export-actions">
-            <button id="exportLayeredBtn" class="button accent alt" type="button">${T.exportLayers}</button>
-            <button id="exportCompositeBtn" class="button accent" type="button">${T.exportFull}</button>
-            <button id="exportSvgBtn" class="button accent alt" type="button">${T.exportSvg}</button>
-          </div>
-        </div>
+${exportDialog}
       </section>
     </aside>
     <section class="content-page content-page-info" aria-label="${T.infoNav}">
@@ -228,6 +241,7 @@ function buildHtml(css, assets, app) {
       <button class="back-button" type="button" data-back-home>${T.back}</button>
     </section>
   </main>
+  <script>window.SONG_BROCADE_APP_MODE = ${JSON.stringify(mode)};</script>
   <script>${assets}</script>
   <script>${app}</script>
 </body>
@@ -238,13 +252,16 @@ function buildHtml(css, assets, app) {
 const css = readText("styles.css");
 const app = readText("app.js");
 const assets = collectSvgAssets();
-const html = buildHtml(css, assets, app);
+const publicHtml = buildHtml(css, assets, app, { mode: "public" });
+const developerHtml = buildHtml(css, assets, app, { mode: "developer" });
 
 writeGenerated("assets-data.js", assets);
-writeGenerated("index.html", `\ufeff${html}`);
-writeGenerated("SongBrocade-iPad-offline.html", `\ufeff${html}`);
+writeGenerated("index.html", `\ufeff${publicHtml}`);
+writeGenerated("SongBrocade-iPad-offline.html", `\ufeff${publicHtml}`);
+writeGenerated("developer-local.html", `\ufeff${developerHtml}`);
 
 console.log("Built iPad offline files:");
 console.log("- assets-data.js");
-console.log("- index.html");
-console.log("- SongBrocade-iPad-offline.html");
+console.log("- index.html (public)");
+console.log("- SongBrocade-iPad-offline.html (public)");
+console.log("- developer-local.html (local developer only)");

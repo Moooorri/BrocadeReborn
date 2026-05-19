@@ -1,5 +1,7 @@
 const CANVAS_SIZE = 800;
 const TILE_SIZE = 200;
+const APP_MODE = window.SONG_BROCADE_APP_MODE === "developer" ? "developer" : "public";
+const IS_DEVELOPER_VERSION = APP_MODE === "developer";
 const MAIN_MOTIF_NUM = 9;
 const SUB_MOTIF_NUM = 10;
 const DEFAULT_SKELETON_TOTAL_WIDTH = 18;
@@ -3354,7 +3356,12 @@ async function boot() {
 generateBtn.addEventListener("click", generatePattern);
 exportBtn.addEventListener("click", (event) => {
   event.stopPropagation();
-  openExportImageDialog();
+  if (IS_DEVELOPER_VERSION) {
+    openExportImageDialog();
+    return;
+  }
+  closeRecipeCard();
+  exportCompositePng();
 });
 if (exportFullBtn) {
   exportFullBtn.addEventListener("click", exportCompositePng);
@@ -3392,13 +3399,17 @@ exportLayerInputs.forEach((input) => {
   input.addEventListener("change", updateExportPreview);
 });
 if (exportLayeredBtn) {
-  exportLayeredBtn.addEventListener("click", exportLayeredPngs);
+  exportLayeredBtn.addEventListener("click", () => {
+    if (IS_DEVELOPER_VERSION) exportLayeredPngs();
+  });
 }
 if (exportCompositeBtn) {
   exportCompositeBtn.addEventListener("click", exportCompositePng);
 }
 if (exportSvgBtn) {
-  exportSvgBtn.addEventListener("click", exportLayeredSvg);
+  exportSvgBtn.addEventListener("click", () => {
+    if (IS_DEVELOPER_VERSION) exportLayeredSvg();
+  });
 }
 document.addEventListener("click", (event) => {
   if (recipeCardPreview && !recipeCardPreview.hidden && event.target !== cardShareBtn && !recipeCardPreview.contains(event.target)) {
