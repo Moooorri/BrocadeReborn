@@ -68,7 +68,7 @@ const T = {
   exportGround: "&#22320;&#32441;",
   exportSkeleton: "&#39592;&#26550;",
   exportMotif: "&#22270;&#20803;",
-  cardShare: "&#21345;&#29255;&#20998;&#20139;",
+  cardShare: "&#20998;&#20139;",
   cardStyle: "&#21345;&#29255;&#26679;&#24335;",
   cardStyleFigma: "&#35774;&#35745;&#31295;&#29256;",
   cardStyleStudio: "&#24403;&#21069;&#29256;",
@@ -153,25 +153,10 @@ ${developerActions}
 }
 
 function buildExportDialogHtml(mode) {
-  if (mode !== "developer") return "";
-
-  return `        <div id="exportImageDialog" class="export-image-dialog" hidden>
-          <div class="export-preview-frame"><canvas id="exportPreviewCanvas" width="800" height="800"></canvas></div>
-          <div class="export-layer-options" aria-label="${T.exportImage}">
-            <label><input type="checkbox" name="exportLayer" value="motifs" checked><span>${T.exportMotif}</span></label>
-            <label><input type="checkbox" name="exportLayer" value="skeleton" checked><span>${T.exportSkeleton}</span></label>
-            <label><input type="checkbox" name="exportLayer" value="ground" checked><span>${T.exportGround}</span></label>
-            <label><input type="checkbox" name="exportLayer" value="background" checked><span>${T.exportBackground}</span></label>
-          </div>
-          <div class="export-actions">
-            <button id="exportLayeredBtn" class="button accent alt" type="button">${T.exportLayers}</button>
-            <button id="exportCompositeBtn" class="button accent" type="button">${T.exportFull}</button>
-            <button id="exportSvgBtn" class="button accent alt" type="button">${T.exportSvg}</button>
-          </div>
-        </div>`;
+  return "";
 }
 
-function buildHtml(css, assets, app, { mode }) {
+function buildHtml(css, assets, app, logo, { mode }) {
   const paletteSection = buildPaletteSectionHtml(mode);
   const exportDialog = buildExportDialogHtml(mode);
 
@@ -187,10 +172,15 @@ function buildHtml(css, assets, app, { mode }) {
 <body data-page="home" data-app-mode="${mode}">
   <main class="app-shell">
     <header class="top-nav" aria-label="&#39029;&#38754;&#23548;&#33322;">
-      <button class="nav-pill" type="button" id="infoBtn">${T.infoNav}</button>
-      <div class="brand-lockup"><h1>${T.title}</h1></div>
-      <button class="nav-pill" type="button" id="aboutBtn">${T.aboutNav}</button>
-      <button class="theme-toggle" type="button" id="themeToggle" aria-label="${T.themeToggle}" aria-pressed="false">日</button>
+      <div class="brand-lockup" aria-label="BROCADE REBORN">
+        <span class="brand-logo" aria-hidden="true">${logo}</span>
+        <h1>BROCADE REBORN</h1>
+      </div>
+      <nav class="nav-actions" aria-label="&#39029;&#38754;&#25805;&#20316;">
+        <button class="nav-pill" type="button" id="infoBtn">${T.infoNav}</button>
+        <button class="nav-pill" type="button" id="aboutBtn">${T.aboutNav}</button>
+        <button class="nav-pill theme-toggle" type="button" id="themeToggle" aria-label="${T.themeToggle}" aria-pressed="false">&#26085;</button>
+      </nav>
     </header>
     <section class="stage" aria-label="${T.preview}">
       <div class="preview-frame">
@@ -236,8 +226,6 @@ ${paletteSection}
       </div>
       <section class="share-panel" aria-label="${T.shareSection}">
         <button id="cardShareBtn" class="button card-share" type="button">${T.cardShare}</button>
-        <button id="exportBtn" class="button accent" type="button">${T.exportImage}</button>
-        <div id="recipeCardPreview" class="recipe-card-preview" hidden></div>
 ${exportDialog}
       </section>
     </aside>
@@ -248,6 +236,7 @@ ${exportDialog}
       <button class="back-button" type="button" data-back-home>${T.back}</button>
     </section>
   </main>
+  <div id="recipeCardPreview" class="recipe-card-preview" hidden></div>
   <script>window.SONG_BROCADE_APP_MODE = ${JSON.stringify(mode)};</script>
   <script>${assets}</script>
   <script>${app}</script>
@@ -258,9 +247,10 @@ ${exportDialog}
 
 const css = readText("styles.css");
 const app = readText("app.js");
+const logo = readText("logo.svg");
 const assets = collectSvgAssets();
-const publicHtml = buildHtml(css, assets, app, { mode: "public" });
-const developerHtml = buildHtml(css, assets, app, { mode: "developer" });
+const publicHtml = buildHtml(css, assets, app, logo, { mode: "public" });
+const developerHtml = buildHtml(css, assets, app, logo, { mode: "developer" });
 
 writeGenerated("assets-data.js", assets);
 writeGenerated("index.html", `\ufeff${publicHtml}`);

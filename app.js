@@ -7,6 +7,7 @@ const SUB_MOTIF_NUM = 10;
 const DEFAULT_SKELETON_TOTAL_WIDTH = 18;
 const DIAMOND_FILL_DEFAULT_SKELETON_WIDTH = 8;
 const DIAMOND_FILL_EXTENSION_WIDTH = 54;
+const SHARE_EXPORT_WIDTH = 1206;
 
 const builtInPalettes = [
   { name: "\u70df\u5c9a\u65b0\u7fe0", colors: ["#A2BBB3", "#5E9CBA", "#EEF5F1", "#9A7B32", "#DAF386"] },
@@ -55,14 +56,25 @@ const layoutCardNames = [
 ];
 const layoutDescriptions = [
   "\u4ee5\u56db\u5411\u8fb9\u7f18\u4e3a\u7ec4\u7ec7\u57fa\u7840\uff0c\u5f62\u6210\u4ea4\u9519\u5ef6\u5c55\u7684\u6392\u5e03\u5173\u7cfb\u3002",
-  "\u4ee5\u4e2d\u5fc3\u4e3a\u6838\u5fc3\uff0c\u5411\u516b\u4e2a\u65b9\u5411\u653e\u5c04\u5c55\u5f00\uff0c\u5f3a\u8c03\u901a\u8fbe\u4e0e\u5747\u8861\u3002",
+  "\u4ee5\u4e2d\u5fc3\u70b9\u4e3a\u89c6\u89c9\u6838\u5fc3\uff0c\u5411\u516b\u65b9\u5c55\u5f00\uff0c\u5f62\u6210\u5747\u8861\u3001\u901a\u8fbe\u7684\u653e\u5c04\u79e9\u5e8f\u3002",
   "\u4ee5\u6a2a\u7eb5\u5341\u5b57\u65b9\u5411\u5c55\u5f00\uff0c\u5f62\u6210\u7a33\u5b9a\u3001\u7aef\u6b63\u7684\u7a7a\u95f4\u79e9\u5e8f\u3002",
   "\u4ee5\u65b9\u683c\u5355\u5143\u5206\u5272\u753b\u9762\uff0c\u5e76\u5728\u683c\u5185\u586b\u5165\u4e3b\u4f53\u56fe\u5f62\u3002",
   "\u4ee5\u516b\u89d2\u5f62\u5355\u5143\u7ec4\u7ec7\u753b\u9762\uff0c\u5f62\u6210\u66f4\u4e30\u5bcc\u7684\u4e2d\u5fc3\u805a\u5408\u5173\u7cfb\u3002",
   "\u4ee5\u5706\u5f62\u6216\u73af\u5f62\u5355\u5143\u8fde\u7eed\u6392\u5217\uff0c\u5f62\u6210\u73af\u73af\u76f8\u6263\u7684\u79e9\u5e8f\u3002",
-  "\u4ee5\u516d\u89d2\u5f62\u9f9f\u80cc\u5355\u5143\u8fde\u7eed\u5bc6\u6392\uff0c\u4e3b\u7eb9\u5185\u5207\u4e8e\u683c\u5185\uff0c\u8f85\u7eb9\u8986\u76d6\u9aa8\u67b6\u4ea4\u63a5\u5904\u3002",
-  "\u4ee5\u83f1\u5f62\u5355\u5143\u8fde\u7eed\u7ec4\u7ec7\u753b\u9762\uff0c\u5706\u5708\u4f4d\u586b\u5165\u4e3b\u7eb9\uff0c\u76f8\u4ea4\u70b9\u4ee5\u8f85\u7eb9\u70b9\u72b6\u8fde\u63a5\u3002",
-  "\u4ee5\u516d\u8fb9\u5f62\u82b1\u7ee6\u5916\u6846\u8fde\u73af\u6392\u5217\uff0c\u6846\u5185\u4ee5\u56db\u7c7b\u56fe\u5143\u6309\u884c\u5e8f\u5faa\u73af\u586b\u5165\u3002",
+  "\u4ee5\u516d\u8fb9\u5f62\u5355\u5143\u8fde\u7eed\u5d4c\u5957\u6392\u5217\uff0c\u5f62\u6210\u7a33\u5b9a\u800c\u5ef6\u5c55\u7684\u8702\u5de2\u5f0f\u79e9\u5e8f\u7ed3\u6784\u3002",
+  "\u4ee5\u83f1\u5f62\u7f51\u683c\u5212\u5206\u7a7a\u95f4\uff0c\u5f62\u6210\u5bcc\u6709\u65b9\u5411\u6027\u7684\u8fde\u7eed\u79e9\u5e8f\u3002",
+  "\u4ee5\u56de\u73af\u82b1\u7ee6\u7ec4\u7ec7\u753b\u9762\uff0c\u5f62\u6210\u4ea4\u7ec7\u5faa\u73af\u7684\u7ed3\u6784\u5173\u7cfb\u3002",
+];
+const cardLayoutInfoNames = [
+  "\u56db\u9685\u4ea4\u9519",
+  "\u516b\u8fbe\u6655",
+  "\u56db\u8fbe\u6655",
+  "\u65b9\u683c\u586b\u82b1",
+  "\u516b\u89d2\u586b\u82b1",
+  "\u7403\u8def\u8fde\u7eed",
+  "\u9f9f\u80cc\u8fde\u7eed",
+  "\u83f1\u683c\u586b\u82b1",
+  "\u76d8\u7ee6\u8fde\u73af",
 ];
 const skeletonStyleCardNames = [
   "\u5355\u8272\u7ec6\u9aa8\u7ebf",
@@ -81,6 +93,7 @@ const recipeCardThemes = [
 ];
 const recipeCardStyles = [
   { key: "figma", label: "\u8bbe\u8ba1\u7a3f\u7248" },
+  { key: "figma-v2", label: "\u8bbe\u8ba1\u7a3f02" },
   { key: "studio", label: "\u5f53\u524d\u7248" },
 ];
 const figmaCardThemes = [
@@ -160,8 +173,9 @@ const state = {
   idxGround: 0,
   idxSub: 0,
   idxMain: 0,
-  recipeCardStyle: "figma",
+  recipeCardStyle: "figma-v2",
   recipeCardTheme: 0,
+  shareMode: "card",
   assets: null,
 };
 
@@ -216,8 +230,9 @@ function makeAssetList() {
 
 function setBusy(isBusy) {
   generateBtn.disabled = isBusy;
-  exportBtn.disabled = isBusy;
+  if (exportBtn) exportBtn.disabled = isBusy;
   if (exportFullBtn) exportFullBtn.disabled = isBusy;
+  if (cardShareBtn) cardShareBtn.disabled = isBusy;
   resetBtn.disabled = isBusy;
 }
 
@@ -740,24 +755,78 @@ function getRecipeCardHtml() {
   if (state.recipeCardStyle === "studio") {
     return getStudioRecipeCardHtml();
   }
+  if (state.recipeCardStyle === "figma-v2") {
+    return getFigmaV2RecipeCardHtml();
+  }
 
   return getFigmaRecipeCardHtml();
 }
 
 function getRecipeCardData() {
   const groundType = state.drawGround ? groundTextureMeta[state.idxGround]?.cardName || "\u672a\u547d\u540d\u5730\u7eb9" : "\u65e0";
+  const groundInfoName = state.drawGround ? groundTextureMeta[state.idxGround]?.displayName || "\u672a\u547d\u540d\u5730\u7eb9" : "\u7eaf\u8272\u65e0\u5730\u7eb9";
   return {
     groundType,
+    groundInfoName,
     patternImage: canvas.toDataURL("image/png"),
     patternId: getPatternId(),
     layoutName: layoutCardNames[state.currentSkeletonLayout],
+    layoutInfoName: cardLayoutInfoNames[state.currentSkeletonLayout] || layoutNames[state.currentSkeletonLayout],
     layoutShortName: layoutNames[state.currentSkeletonLayout],
     skeletonName: skeletonStyleCardNames[state.currentSkeletonStyle],
+    skeletonInfoName: skeletonStyleNames[state.currentSkeletonStyle],
     motifName: `Sb${state.idxMain + 1} / Sc${state.idxSub + 1}`,
     groundColorLabel: getPaletteLabel(Math.max(0, targetColors.indexOf(state.groundColor))),
     backgroundColorLabel: getPaletteLabel(Math.max(0, targetColors.indexOf(state.backgroundColor))),
     description: layoutDescriptions[state.currentSkeletonLayout],
   };
+}
+
+function imageToRecipeCardDataUrl(image, size = 96) {
+  if (!image) return "";
+  const thumbCanvas = document.createElement("canvas");
+  thumbCanvas.width = size;
+  thumbCanvas.height = size;
+  const thumbCtx = thumbCanvas.getContext("2d");
+  thumbCtx.clearRect(0, 0, size, size);
+  thumbCtx.drawImage(image, 0, 0, size, size);
+  return thumbCanvas.toDataURL("image/png");
+}
+
+function getRecipeCardMotifImages() {
+  if (!state.assets) return [];
+  const images = [];
+  const pushImage = (collection, index) => {
+    const image = collection && collection[getWrappedIndex(index, 0, collection.length)];
+    if (image) images.push(imageToRecipeCardDataUrl(image));
+  };
+  const pushPair = (index, sub = false) => {
+    pushImage(sub ? state.assets.subA : state.assets.mainA, index);
+    pushImage(sub ? state.assets.subB : state.assets.mainB, index);
+  };
+
+  if (state.currentSkeletonLayout === 6) {
+    [0, 1].forEach((offset) => pushPair(state.idxSub + offset, true));
+    [0, 1, 2, 3].forEach((offset) => pushPair(state.idxMain + offset));
+    return images;
+  }
+  if (state.currentSkeletonLayout === 7) {
+    pushPair(state.idxSub, true);
+    pushPair(state.idxMain);
+    pushPair(state.idxMain + 1);
+    return images;
+  }
+  if (state.currentSkeletonLayout === 8) {
+    [0, 1, 2, 3].forEach((offset) => pushPair(state.idxMain + offset));
+    return images;
+  }
+
+  pushPair(state.idxSub, true);
+  if (state.currentSkeletonLayout === 4) {
+    pushPair(state.idxSub + 3, true);
+  }
+  pushPair(state.idxMain);
+  return images;
 }
 
 function getFigmaRecipeCardHtml() {
@@ -778,6 +847,51 @@ function getFigmaRecipeCardHtml() {
         </div>
         <div class="figma-card-code">${escapeHtml(data.patternId)} / ${escapeHtml(styleLabel)} / ${escapeHtml(theme.label)}</div>
         <p>${escapeHtml(data.description)}</p>
+      </div>
+    </div>
+  `;
+}
+
+function getFigmaV2RecipeCardHtml() {
+  const data = getRecipeCardData();
+  const motifs = getRecipeCardMotifImages();
+  const motifItems = motifs.map((src, index) => `
+    <span class="figma-v2-motif"><img src="${src}" alt="\u56fe\u5143 ${index + 1}"></span>
+  `).join("");
+
+  return `
+    <div class="recipe-card-placeholder recipe-card-figma-v2">
+      <div class="figma-v2-art">
+        <img src="${data.patternImage}" alt="">
+      </div>
+      <div class="figma-v2-motifs" aria-label="\u4f7f\u7528\u7684\u56fe\u5143">${motifItems}</div>
+      <div class="figma-v2-footer">
+        <div class="figma-v2-brand">
+          <div class="figma-v2-brand-en">BROCADE<br>REBORN</div>
+          <div class="figma-v2-brand-cn">\u9526\u5e8f<br>\u65b0\u751f</div>
+        </div>
+        <div class="figma-v2-meta">
+          <section>
+            <strong>\u9aa8\u67b6\u7ed3\u6784</strong>
+            <span>Structure</span>
+            <p>${escapeHtml(data.layoutInfoName)}</p>
+          </section>
+          <section>
+            <strong>\u9aa8\u7ebf\u6837\u5f0f</strong>
+            <span>Line Style</span>
+            <p>${escapeHtml(data.skeletonInfoName)}</p>
+          </section>
+          <section>
+            <strong>\u5730\u7eb9\u7c7b\u578b</strong>
+            <span>Ground Pattern</span>
+            <p>${escapeHtml(data.groundInfoName)}</p>
+          </section>
+          <section>
+            <strong>\u7ed3\u6784\u8bf4\u660e</strong>
+            <span>Description</span>
+            <p>${escapeHtml(data.description)}</p>
+          </section>
+        </div>
       </div>
     </div>
   `;
@@ -810,6 +924,44 @@ function getRecipeCardControlsHtml() {
         <span>\u5361\u7247\u914d\u8272</span>
         <div class="share-card-choice-row share-card-swatch-row">${themeButtons}</div>
       </div>
+    </div>
+  `;
+}
+
+function getShareDialogHtml() {
+  const isCard = state.shareMode !== "original";
+  const developerOriginalTools = !isCard && IS_DEVELOPER_VERSION ? `
+    <div class="share-export-tools" aria-label="\u539f\u56fe\u56fe\u5c42">
+      <div class="share-export-layer-options">
+        <label><input type="checkbox" name="shareExportLayer" value="motifs" checked><span>\u56fe\u5143</span></label>
+        <label><input type="checkbox" name="shareExportLayer" value="skeleton" checked><span>\u9aa8\u67b6</span></label>
+        <label><input type="checkbox" name="shareExportLayer" value="ground" checked><span>\u5730\u7eb9</span></label>
+        <label><input type="checkbox" name="shareExportLayer" value="background" checked><span>\u80cc\u666f</span></label>
+      </div>
+      <div class="share-export-tool-actions">
+        <button class="button" type="button" data-share-layered-export>\u5206\u56fe\u5c42\u4e0b\u8f7d</button>
+        <button class="button" type="button" data-share-svg-export>SVG \u4e0b\u8f7d</button>
+      </div>
+    </div>
+  ` : "";
+  const previewHtml = isCard
+    ? `<div class="share-preview-content">${getRecipeCardHtml()}</div>`
+    : `<div class="share-preview-content share-preview-original">${IS_DEVELOPER_VERSION ? `<canvas id="shareOriginalPreviewCanvas" width="${CANVAS_SIZE}" height="${CANVAS_SIZE}"></canvas>` : `<img src="${canvas.toDataURL("image/png")}" alt="\u539f\u56fe">`}</div>`;
+
+  return `
+    <div class="share-dialog" role="dialog" aria-label="\u5206\u4eab">
+      <div class="share-mode-tabs" role="tablist" aria-label="\u5206\u4eab\u7c7b\u578b">
+        <button class="share-mode-tab${isCard ? " is-selected" : ""}" type="button" data-share-mode="card" role="tab" aria-selected="${isCard}">\u5361\u7247</button>
+        <button class="share-mode-tab${!isCard ? " is-selected" : ""}" type="button" data-share-mode="original" role="tab" aria-selected="${!isCard}">\u539f\u56fe</button>
+      </div>
+      <div class="share-render-frame">${previewHtml}</div>
+      ${developerOriginalTools}
+      <div class="share-actions">
+        <button class="button share-save-button" type="button" data-share-save>\u4fdd\u5b58</button>
+        <button class="button share-send-button" type="button" data-share-send>\u5206\u4eab</button>
+      </div>
+      <div class="share-notice" data-share-notice aria-live="polite"></div>
+      <button class="share-cancel-button" type="button" data-share-cancel>\u53d6\u6d88</button>
     </div>
   `;
 }
@@ -850,9 +1002,13 @@ function getStudioRecipeCardHtml() {
 
 function generateRecipeCard() {
   if (!recipeCardPreview) return;
-  recipeCardPreview.innerHTML = `${getRecipeCardHtml()}${getRecipeCardControlsHtml()}`;
+  if (recipeCardPreview.parentElement !== document.body) {
+    document.body.appendChild(recipeCardPreview);
+  }
+  recipeCardPreview.innerHTML = getShareDialogHtml();
   recipeCardPreview.hidden = false;
-  setStatus("\u5361\u7247\u5360\u4f4d\u56fe\u5df2\u751f\u6210\u3002");
+  updateShareOriginalPreview();
+  setStatus("\u5206\u4eab\u9762\u677f\u5df2\u6253\u5f00\u3002");
   window.setTimeout(() => setStatus(""), 2200);
 }
 
@@ -2423,7 +2579,8 @@ function updateInfoPanel() {
   updateBackgroundColorPreview();
   updatePatternCodeLabel();
   if (recipeCardPreview && !recipeCardPreview.hidden) {
-    recipeCardPreview.innerHTML = `${getRecipeCardHtml()}${getRecipeCardControlsHtml()}`;
+    recipeCardPreview.innerHTML = getShareDialogHtml();
+    updateShareOriginalPreview();
   }
   if (exportImageDialog && !exportImageDialog.hidden) {
     updateExportPreview();
@@ -2575,8 +2732,12 @@ function getExportLayerState() {
     skeleton: true,
     motifs: true,
   };
+  const activeLayerInputs = recipeCardPreview && !recipeCardPreview.hidden
+    ? recipeCardPreview.querySelectorAll("input[name='shareExportLayer']")
+    : [];
 
-  exportLayerInputs.forEach((input) => {
+  const inputs = activeLayerInputs.length ? activeLayerInputs : exportLayerInputs;
+  inputs.forEach((input) => {
     layers[input.value] = input.checked;
   });
 
@@ -2588,6 +2749,29 @@ function makeExportCanvas() {
   exportCanvas.width = CANVAS_SIZE;
   exportCanvas.height = CANVAS_SIZE;
   return exportCanvas;
+}
+
+function makeSharePatternCanvas(layers = null) {
+  const baseCanvas = makeExportCanvas();
+  const activeLayers = layers || {
+    background: true,
+    ground: true,
+    skeleton: true,
+    motifs: true,
+  };
+
+  renderPattern({
+    targetCanvas: baseCanvas,
+    transparent: !activeLayers.background,
+    layers: activeLayers,
+  });
+
+  const outputCanvas = document.createElement("canvas");
+  outputCanvas.width = SHARE_EXPORT_WIDTH;
+  outputCanvas.height = SHARE_EXPORT_WIDTH;
+  const outputCtx = outputCanvas.getContext("2d");
+  outputCtx.drawImage(baseCanvas, 0, 0, SHARE_EXPORT_WIDTH, SHARE_EXPORT_WIDTH);
+  return outputCanvas;
 }
 
 const exportLayerOrder = [
@@ -2633,6 +2817,433 @@ async function downloadCanvas(sourceCanvas, fileName) {
   document.body.appendChild(link);
   link.click();
   link.remove();
+}
+
+function downloadBlob(blob, fileName) {
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  link.download = fileName;
+  link.href = url;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function getDocumentCssText() {
+  return Array.from(document.styleSheets).map((sheet) => {
+    try {
+      return Array.from(sheet.cssRules).map((rule) => rule.cssText).join("\n");
+    } catch {
+      return "";
+    }
+  }).join("\n");
+}
+
+function inlineComputedStyles(source, clone) {
+  if (!(source instanceof Element) || !(clone instanceof Element)) return;
+  const computed = window.getComputedStyle(source);
+  const styleText = Array.from(computed).map((property) => {
+    return `${property}:${computed.getPropertyValue(property)};`;
+  }).join("");
+  clone.setAttribute("style", styleText);
+
+  Array.from(source.children).forEach((child, index) => {
+    inlineComputedStyles(child, clone.children[index]);
+  });
+}
+
+function loadImageFromUrl(url, image = new Image()) {
+  return new Promise((resolve, reject) => {
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("\u5206\u4eab\u56fe\u7247\u751f\u6210\u5931\u8d25"));
+    image.src = url;
+  });
+}
+
+async function elementToPngBlob(element, outputWidth = SHARE_EXPORT_WIDTH) {
+  if (document.fonts && document.fonts.ready) {
+    await document.fonts.ready;
+  }
+
+  const rect = element.getBoundingClientRect();
+  const width = Math.max(1, Math.ceil(rect.width));
+  const height = Math.max(1, Math.ceil(rect.height));
+  const outputHeight = Math.round(height * (outputWidth / width));
+  const clone = element.cloneNode(true);
+  inlineComputedStyles(element, clone);
+  clone.style.width = `${width}px`;
+  clone.style.height = `${height}px`;
+  clone.style.maxWidth = "none";
+  clone.style.maxHeight = "none";
+  const serializedElement = new XMLSerializer().serializeToString(clone);
+
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+      <foreignObject width="100%" height="100%">
+        <div xmlns="http://www.w3.org/1999/xhtml" style="margin:0;width:${width}px;height:${height}px;background:transparent;">${serializedElement}</div>
+      </foreignObject>
+    </svg>
+  `;
+  const image = new Image();
+  const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
+  await loadImageFromUrl(url, image);
+
+  const outputCanvas = document.createElement("canvas");
+  outputCanvas.width = outputWidth;
+  outputCanvas.height = outputHeight;
+  const outputCtx = outputCanvas.getContext("2d");
+  outputCtx.drawImage(image, 0, 0, outputWidth, outputHeight);
+  URL.revokeObjectURL(url);
+  return canvasToBlobAsync(outputCanvas);
+}
+
+function getSharePreviewElement() {
+  return recipeCardPreview && recipeCardPreview.querySelector(".share-preview-content > .recipe-card-placeholder");
+}
+
+function drawWrappedCanvasText(ctx, text, x, y, maxWidth, lineHeight, maxLines = 6) {
+  const lines = getWrappedCanvasLines(ctx, text, maxWidth, maxLines);
+  lines.forEach((lineText, index) => {
+    ctx.fillText(lineText, x, y + index * lineHeight);
+  });
+}
+
+function getWrappedCanvasLines(ctx, text, maxWidth, maxLines = 6) {
+  const chars = String(text).split("");
+  const lines = [];
+  let line = "";
+  const leadingPunctuation = "\uff0c\u3002\uff1b\uff1a\uff01\uff1f\u3001,.!?:;";
+
+  chars.forEach((char) => {
+    const testLine = `${line}${char}`;
+    if (ctx.measureText(testLine).width > maxWidth && line) {
+      if (leadingPunctuation.includes(char)) {
+        line += char;
+        lines.push(line);
+        line = "";
+      } else {
+        lines.push(line);
+        line = char;
+      }
+    } else {
+      line = testLine;
+    }
+  });
+  if (line) lines.push(line);
+
+  return lines.slice(0, maxLines);
+}
+
+function drawImageCover(ctx, image, x, y, width, height) {
+  const sourceWidth = image.naturalWidth || image.width;
+  const sourceHeight = image.naturalHeight || image.height;
+  const scale = Math.max(width / sourceWidth, height / sourceHeight);
+  const drawWidth = sourceWidth * scale;
+  const drawHeight = sourceHeight * scale;
+  ctx.drawImage(image, x + (width - drawWidth) / 2, y + (height - drawHeight) / 2, drawWidth, drawHeight);
+}
+
+function setShareDialogNotice(message) {
+  const notice = recipeCardPreview && recipeCardPreview.querySelector("[data-share-notice]");
+  if (notice) {
+    notice.textContent = message;
+  }
+  setStatus(message);
+  window.setTimeout(() => {
+    if (notice && notice.textContent === message) notice.textContent = "";
+    setStatus("");
+  }, 2600);
+}
+
+function canvasFontFromElement(element, scale) {
+  const style = window.getComputedStyle(element);
+  const fontStyle = style.fontStyle || "normal";
+  const fontWeight = style.fontWeight || "400";
+  const fontSize = parseFloat(style.fontSize || "12") * scale;
+  const fontFamily = style.fontFamily || "sans-serif";
+  return `${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`;
+}
+
+function getElementFontMetrics(element, scale) {
+  const style = window.getComputedStyle(element);
+  return {
+    color: style.color || "#000000",
+    font: canvasFontFromElement(element, scale),
+    lineHeight: (parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.2) * scale,
+  };
+}
+
+function drawElementText(ctx, element, cardRect, scale, options = {}) {
+  if (!element) return;
+  const rect = element.getBoundingClientRect();
+  const metrics = getElementFontMetrics(element, scale);
+  const x = (rect.left - cardRect.left) * scale;
+  const y = (rect.top - cardRect.top) * scale;
+  ctx.font = metrics.font;
+  ctx.fillStyle = metrics.color;
+  ctx.textBaseline = "top";
+
+  const textLines = options.lines || String(element.textContent || "").split(/\n/);
+  textLines.forEach((line, index) => {
+    ctx.fillText(line.trim(), x, y + index * metrics.lineHeight);
+  });
+}
+
+function drawWrappedElementText(ctx, element, cardRect, scale, maxLines = 8) {
+  if (!element) return;
+  const rect = element.getBoundingClientRect();
+  const style = window.getComputedStyle(element);
+  const x = (rect.left - cardRect.left) * scale;
+  const maxWidth = rect.width * scale;
+  const lineHeight = (parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.35) * scale;
+  ctx.font = canvasFontFromElement(element, scale);
+  ctx.fillStyle = style.color || "#000000";
+  ctx.textBaseline = "top";
+  const lines = getWrappedCanvasLines(ctx, element.textContent || "", maxWidth, maxLines);
+  const y = (rect.bottom - cardRect.top) * scale - lines.length * lineHeight;
+  lines.forEach((lineText, index) => {
+    ctx.fillText(lineText, x, y + index * lineHeight);
+  });
+}
+
+function drawMetaSectionBlock(ctx, section, cardRect, scale) {
+  const title = section.querySelector("strong");
+  const label = section.querySelector("span");
+  const body = section.querySelector("p");
+  if (!title || !label || !body) return;
+
+  const sectionRect = section.getBoundingClientRect();
+  const bodyRect = body.getBoundingClientRect();
+  const x = (sectionRect.left - cardRect.left) * scale;
+  const titleMetrics = getElementFontMetrics(title, scale);
+  const labelMetrics = getElementFontMetrics(label, scale);
+  const bodyMetrics = getElementFontMetrics(body, scale);
+  const bodyWidth = bodyRect.width * scale;
+
+  ctx.font = bodyMetrics.font;
+  const bodyLines = getWrappedCanvasLines(ctx, body.textContent || "", bodyWidth, 8);
+  const bodyMarginTop = (bodyRect.top - label.getBoundingClientRect().bottom) * scale;
+  const blockHeight = titleMetrics.lineHeight + labelMetrics.lineHeight + bodyMarginTop + bodyLines.length * bodyMetrics.lineHeight;
+  let y = (sectionRect.bottom - cardRect.top) * scale - blockHeight;
+
+  ctx.textBaseline = "top";
+  ctx.fillStyle = titleMetrics.color;
+  ctx.font = titleMetrics.font;
+  ctx.fillText(title.textContent.trim(), x, y);
+  y += titleMetrics.lineHeight;
+
+  ctx.fillStyle = labelMetrics.color;
+  ctx.font = labelMetrics.font;
+  ctx.fillText(label.textContent.trim().toUpperCase(), x, y);
+  y += labelMetrics.lineHeight + bodyMarginTop;
+
+  ctx.fillStyle = bodyMetrics.color;
+  ctx.font = bodyMetrics.font;
+  bodyLines.forEach((lineText, index) => {
+    ctx.fillText(lineText, x, y + index * bodyMetrics.lineHeight);
+  });
+}
+
+async function renderVisibleFigmaV2CardCanvas(element, outputWidth = SHARE_EXPORT_WIDTH) {
+  const cardRect = element.getBoundingClientRect();
+  const scale = outputWidth / cardRect.width;
+  const outputHeight = Math.round(cardRect.height * scale);
+  const outputCanvas = document.createElement("canvas");
+  outputCanvas.width = outputWidth;
+  outputCanvas.height = outputHeight;
+  const outputCtx = outputCanvas.getContext("2d");
+
+  outputCtx.fillStyle = "#ffffff";
+  outputCtx.fillRect(0, 0, outputWidth, outputHeight);
+
+  const art = element.querySelector(".figma-v2-art");
+  const artImg = art && art.querySelector("img");
+  if (art && artImg) {
+    const artRect = art.getBoundingClientRect();
+    const image = await loadImageFromUrl(artImg.src);
+    const x = (artRect.left - cardRect.left) * scale;
+    const y = (artRect.top - cardRect.top) * scale;
+    const w = artRect.width * scale;
+    const h = artRect.height * scale;
+    outputCtx.save();
+    outputCtx.beginPath();
+    outputCtx.rect(x, y, w, h);
+    outputCtx.clip();
+    drawImageCover(outputCtx, image, x, y, w, h);
+    outputCtx.restore();
+  }
+
+  for (const motifImg of element.querySelectorAll(".figma-v2-motif img")) {
+    const motifRect = motifImg.getBoundingClientRect();
+    const image = await loadImageFromUrl(motifImg.src);
+    outputCtx.drawImage(
+      image,
+      (motifRect.left - cardRect.left) * scale,
+      (motifRect.top - cardRect.top) * scale,
+      motifRect.width * scale,
+      motifRect.height * scale
+    );
+  }
+
+  const brandEn = element.querySelector(".figma-v2-brand-en");
+  if (brandEn) drawElementText(outputCtx, brandEn, cardRect, scale, { lines: ["BROCADE", "REBORN"] });
+  const brandCn = element.querySelector(".figma-v2-brand-cn");
+  if (brandCn) drawElementText(outputCtx, brandCn, cardRect, scale, { lines: ["\u9526\u5e8f", "\u65b0\u751f"] });
+
+  element.querySelectorAll(".figma-v2-meta section").forEach((section) => {
+    drawMetaSectionBlock(outputCtx, section, cardRect, scale);
+  });
+
+  return outputCanvas;
+}
+
+async function renderFigmaV2CardCanvas(outputWidth = SHARE_EXPORT_WIDTH) {
+  const data = getRecipeCardData();
+  const outputHeight = Math.round(outputWidth * 923 / 624);
+  const outputCanvas = document.createElement("canvas");
+  outputCanvas.width = outputWidth;
+  outputCanvas.height = outputHeight;
+  const outputCtx = outputCanvas.getContext("2d");
+  const uiScale = outputWidth / 500;
+  const patternImage = await loadImageFromUrl(data.patternImage);
+
+  outputCtx.fillStyle = "#ffffff";
+  outputCtx.fillRect(0, 0, outputWidth, outputHeight);
+
+  const artX = outputWidth * 0.06;
+  const artY = outputHeight * 0.04;
+  const artW = outputWidth * 0.878;
+  const artH = outputHeight * 0.7082;
+  outputCtx.fillStyle = "#8f8f8f";
+  outputCtx.fillRect(artX, artY, artW, artH);
+  outputCtx.save();
+  outputCtx.beginPath();
+  outputCtx.rect(artX, artY, artW, artH);
+  outputCtx.clip();
+  drawImageCover(outputCtx, patternImage, artX, artY, artW, artH);
+  outputCtx.restore();
+
+  const motifSources = getRecipeCardMotifImages();
+  const motifSize = 16 * uiScale;
+  let motifX = outputWidth * 0.06;
+  const motifY = outputHeight * 0.7725;
+  for (const src of motifSources) {
+    const image = await loadImageFromUrl(src);
+    outputCtx.drawImage(image, motifX, motifY, motifSize, motifSize);
+    motifX += motifSize + 9 * uiScale;
+  }
+
+  const footerX = outputWidth * 0.06;
+  const footerW = outputWidth * 0.88;
+  const footerBottomY = outputHeight * (1 - 0.055);
+  const brandX = footerX;
+  const brandBottomY = footerBottomY;
+  outputCtx.fillStyle = "#000000";
+  outputCtx.textBaseline = "top";
+  const brandEnSize = 7 * uiScale;
+  const brandEnLine = brandEnSize * 1.2;
+  const brandCnSize = 11 * uiScale;
+  const brandCnLine = brandCnSize * 1.08;
+  const brandGap = 10 * uiScale;
+  const brandHeight = brandEnLine * 2 + brandGap + brandCnLine * 2;
+  let brandY = brandBottomY - brandHeight;
+
+  outputCtx.font = `400 ${brandEnSize}px "Ogg TRIAL", "Times New Roman", serif`;
+  outputCtx.fillText("BROCADE", brandX, brandY);
+  outputCtx.fillText("REBORN", brandX, brandY + brandEnLine);
+  brandY += brandEnLine * 2 + brandGap;
+
+  outputCtx.font = `400 ${brandCnSize}px "TingMing", "Songti SC", "SimSun", serif`;
+  outputCtx.fillText("\u9526\u5e8f", brandX, brandY);
+  outputCtx.fillText("\u65b0\u751f", brandX, brandY + brandCnLine);
+
+  const metaW = footerW * 0.776;
+  const metaX = footerX + footerW - metaW;
+  const gap = metaW * 0.07;
+  const columnTotal = metaW - gap * 3;
+  const fractions = [1.03, 0.88, 0.9, 1];
+  const fractionTotal = fractions.reduce((sum, value) => sum + value, 0);
+  const widths = fractions.map((value) => columnTotal * value / fractionTotal);
+  const columns = [
+    { title: "\u9aa8\u67b6\u7ed3\u6784", en: "STRUCTURE", body: data.layoutInfoName, lines: 2 },
+    { title: "\u9aa8\u7ebf\u6837\u5f0f", en: "LINE STYLE", body: data.skeletonInfoName, lines: 2 },
+    { title: "\u5730\u7eb9\u7c7b\u578b", en: "GROUND PATTERN", body: data.groundInfoName, lines: 2 },
+    { title: "\u7ed3\u6784\u8bf4\u660e", en: "DESCRIPTION", body: data.description, lines: 7 },
+  ];
+
+  const titleSize = 7.5 * uiScale;
+  const titleLine = titleSize * 1.35;
+  const enSize = 5 * uiScale;
+  const enLine = enSize * 1.2;
+  const bodySize = 7.4 * uiScale;
+  const bodyLine = bodySize * 1.35;
+  columns.forEach((column, index) => {
+    const x = metaX + widths.slice(0, index).reduce((sum, value) => sum + value, 0) + gap * index;
+    const maxWidth = widths[index];
+    outputCtx.font = `400 ${bodySize}px "PingFang SC", "Microsoft YaHei", sans-serif`;
+    const bodyLines = getWrappedCanvasLines(outputCtx, column.body, maxWidth, column.lines);
+    const blockHeight = titleLine + enLine + bodyLine * bodyLines.length + 1 * uiScale;
+    const baseY = footerBottomY - blockHeight;
+    outputCtx.font = `400 ${titleSize}px "PingFang SC", "Microsoft YaHei", sans-serif`;
+    outputCtx.fillText(column.title, x, baseY);
+    outputCtx.font = `400 ${enSize}px "Ogg TRIAL", "Times New Roman", serif`;
+    outputCtx.fillText(column.en, x, baseY + titleLine);
+    outputCtx.font = `400 ${bodySize}px "PingFang SC", "Microsoft YaHei", sans-serif`;
+    bodyLines.forEach((lineText, lineIndex) => {
+      outputCtx.fillText(lineText, x, baseY + titleLine + enLine + 1 * uiScale + lineIndex * bodyLine);
+    });
+  });
+
+  return outputCanvas;
+}
+
+async function getCurrentShareBlob() {
+  if (state.shareMode === "original") {
+    const layers = IS_DEVELOPER_VERSION ? getExportLayerState() : null;
+    return canvasToBlobAsync(makeSharePatternCanvas(layers));
+  }
+
+  const element = getSharePreviewElement();
+  if (!element) return null;
+  try {
+    return await elementToPngBlob(element, SHARE_EXPORT_WIDTH);
+  } catch (error) {
+    console.warn("\u7f51\u9875 DOM \u5bfc\u51fa\u5931\u8d25\uff0c\u6539\u7528\u53ef\u89c6\u5361\u7247\u6d4b\u91cf\u5bfc\u51fa\u3002", error);
+    if (state.recipeCardStyle === "figma-v2") {
+      return canvasToBlobAsync(await renderVisibleFigmaV2CardCanvas(element, SHARE_EXPORT_WIDTH));
+    }
+    throw error;
+  }
+}
+
+function getCurrentShareFileName() {
+  const suffix = state.shareMode === "original" ? "full" : "card";
+  return `${getPatternId()}_01_${suffix}.png`;
+}
+
+async function saveCurrentShareImage() {
+  setShareDialogNotice("\u6b63\u5728\u751f\u6210\u4e0b\u8f7d\u56fe\u7247...");
+  const blob = await getCurrentShareBlob();
+  if (!blob) {
+    setShareDialogNotice("\u4fdd\u5b58\u56fe\u7247\u5931\u8d25\uff0c\u8bf7\u91cd\u8bd5\u3002");
+    return;
+  }
+  downloadBlob(blob, getCurrentShareFileName());
+  setShareDialogNotice(`\u5df2\u751f\u6210 ${SHARE_EXPORT_WIDTH}px \u5bbd\u7684\u4e0b\u8f7d\u56fe\u7247\u3002`);
+}
+
+async function shareCurrentShareImage() {
+  const blob = await getCurrentShareBlob();
+  if (!blob) return;
+  const file = new File([blob], getCurrentShareFileName(), { type: "image/png" });
+
+  if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+    await navigator.share({ title: "\u9526\u5e8f\u65b0\u751f", files: [file] });
+    return;
+  }
+
+  await saveCurrentShareImage();
 }
 
 function downloadTextFile(content, fileName, mimeType) {
@@ -3285,6 +3896,17 @@ function updateExportPreview() {
   });
 }
 
+function updateShareOriginalPreview() {
+  const shareCanvas = recipeCardPreview && recipeCardPreview.querySelector("#shareOriginalPreviewCanvas");
+  if (!shareCanvas || !state.assets) return;
+  const layers = getExportLayerState();
+  renderPattern({
+    targetCanvas: shareCanvas,
+    transparent: !layers.background,
+    layers,
+  });
+}
+
 function openExportImageDialog() {
   if (!exportImageDialog) return;
   closeRecipeCard();
@@ -3369,15 +3991,17 @@ async function boot() {
 }
 
 generateBtn.addEventListener("click", generatePattern);
-exportBtn.addEventListener("click", (event) => {
-  event.stopPropagation();
-  if (IS_DEVELOPER_VERSION) {
-    openExportImageDialog();
-    return;
-  }
-  closeRecipeCard();
-  exportCompositePng();
-});
+if (exportBtn) {
+  exportBtn.addEventListener("click", (event) => {
+    event.stopPropagation();
+    if (IS_DEVELOPER_VERSION) {
+      openExportImageDialog();
+      return;
+    }
+    closeRecipeCard();
+    exportCompositePng();
+  });
+}
 if (exportFullBtn) {
   exportFullBtn.addEventListener("click", exportCompositePng);
 }
@@ -3391,17 +4015,68 @@ if (cardShareBtn) {
 if (recipeCardPreview) {
   recipeCardPreview.addEventListener("click", (event) => {
     event.stopPropagation();
+    if (event.target === recipeCardPreview) {
+      closeRecipeCard();
+      return;
+    }
+
+    const modeButton = event.target.closest("[data-share-mode]");
+    if (modeButton) {
+      state.shareMode = modeButton.dataset.shareMode === "original" ? "original" : "card";
+      recipeCardPreview.innerHTML = getShareDialogHtml();
+      updateShareOriginalPreview();
+      return;
+    }
+
+    if (event.target.closest("input[name='shareExportLayer']")) {
+      updateShareOriginalPreview();
+      return;
+    }
+
+    if (event.target.closest("[data-share-layered-export]")) {
+      if (IS_DEVELOPER_VERSION) exportLayeredPngs();
+      return;
+    }
+
+    if (event.target.closest("[data-share-svg-export]")) {
+      if (IS_DEVELOPER_VERSION) exportLayeredSvg();
+      return;
+    }
+
+    if (event.target.closest("[data-share-cancel]")) {
+      closeRecipeCard();
+      return;
+    }
+
+    if (event.target.closest("[data-share-save]")) {
+      saveCurrentShareImage().catch((error) => {
+        console.error(error);
+        setStatus("\u4fdd\u5b58\u56fe\u7247\u5931\u8d25\u3002");
+      });
+      return;
+    }
+
+    if (event.target.closest("[data-share-send]")) {
+      shareCurrentShareImage().catch((error) => {
+        console.error(error);
+        setStatus("\u5206\u4eab\u5931\u8d25\uff0c\u5df2\u5c1d\u8bd5\u4fdd\u5b58\u56fe\u7247\u3002");
+      });
+      return;
+    }
+
     const styleButton = event.target.closest("[data-card-style]");
     if (styleButton) {
       state.recipeCardStyle = styleButton.dataset.cardStyle;
-      recipeCardPreview.innerHTML = `${getRecipeCardHtml()}${getRecipeCardControlsHtml()}`;
+      recipeCardPreview.innerHTML = getShareDialogHtml();
+      updateShareOriginalPreview();
       return;
     }
 
     const themeButton = event.target.closest("[data-card-theme]");
     if (themeButton) {
       state.recipeCardTheme = Number(themeButton.dataset.cardTheme) || 0;
-      recipeCardPreview.innerHTML = `${getRecipeCardHtml()}${getRecipeCardControlsHtml()}`;
+      recipeCardPreview.innerHTML = getShareDialogHtml();
+      updateShareOriginalPreview();
     }
   });
 }
