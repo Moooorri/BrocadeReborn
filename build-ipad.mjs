@@ -60,6 +60,7 @@ const T = {
   renamePalette: "&#37325;&#21629;&#21517;",
   deletePalette: "&#21024;&#38500;",
   generate: "&#29983;&#25104;&#26032;&#32441;&#26679;",
+  traceback: "&#32534;&#21495;&#22238;&#28335;",
   exportImage: "&#23548;&#20986;&#22270;&#29255;",
   exportLayers: "&#20998;&#23618;&#23548;&#20986;",
   exportFull: "&#23436;&#25972;&#22270;&#29255;",
@@ -156,9 +157,32 @@ function buildExportDialogHtml(mode) {
   return "";
 }
 
+function buildLayoutOptionsHtml(mode) {
+  const options = [
+    ["0", T.fourAround, "developer"],
+    ["1", T.badayun],
+    ["2", T.sidayun],
+    ["3", T.squareTianhua],
+    ["4", T.octagonTianhua],
+    ["5", T.ball],
+    ["6", T.turtleback],
+    ["7", T.diamondFill],
+    ["8", T.interlockRibbon],
+  ];
+
+  return options
+    .filter(([, , visibility]) => visibility !== "developer" || mode === "developer")
+    .map(([value, label]) => `<option value="${value}">${label}</option>`)
+    .join("");
+}
+
 function buildHtml(css, assets, app, logo, { mode }) {
   const paletteSection = buildPaletteSectionHtml(mode);
   const exportDialog = buildExportDialogHtml(mode);
+  const layoutOptions = buildLayoutOptionsHtml(mode);
+  const tracebackButton = mode === "developer"
+    ? `          <button id="tracebackBtn" class="button secondary" type="button">${T.traceback}</button>`
+    : "";
 
   return `<!doctype html>
 <html lang="zh-CN">
@@ -197,6 +221,7 @@ function buildHtml(css, assets, app, logo, { mode }) {
         <section class="action-panel" aria-label="${T.generateSection}">
           <button id="generateBtn" class="button primary" type="button">${T.generate}</button>
           <button id="resetBtn" class="button secondary" type="button">${T.reset}</button>
+${tracebackButton}
         </section>
         <section class="panel" aria-label="${T.panel}">
           <div class="panel-scroll">
@@ -204,7 +229,7 @@ function buildHtml(css, assets, app, logo, { mode }) {
 ${paletteSection}
           <section class="control-section skeleton-section" aria-label="${T.skeletonSection}">
             <h2 class="control-section-title">${T.skeletonSection}</h2>
-            <label class="field" for="layoutSelect"><span>${T.layout}</span><select id="layoutSelect" class="native-select"><option value="random">${T.randomLayout}</option><option value="0">${T.fourAround}</option><option value="1">${T.badayun}</option><option value="2">${T.sidayun}</option><option value="3">${T.squareTianhua}</option><option value="4">${T.octagonTianhua}</option><option value="5">${T.ball}</option><option value="6">${T.turtleback}</option><option value="7">${T.diamondFill}</option><option value="8">${T.interlockRibbon}</option></select><div class="option-strip" data-select-target="layoutSelect" role="listbox" aria-label="${T.layout}"></div></label>
+            <label class="field" for="layoutSelect"><span>${T.layout}</span><select id="layoutSelect" class="native-select"><option value="random">${T.randomLayout}</option>${layoutOptions}</select><div class="option-strip" data-select-target="layoutSelect" role="listbox" aria-label="${T.layout}"></div></label>
             <label class="field" for="skeletonStyleSelect"><span>${T.skeletonStyle}</span><select id="skeletonStyleSelect" class="native-select"><option value="random">${T.randomStyle}</option><option value="0">${T.singleLine}</option><option value="1">${T.monoDouble}</option><option value="2">${T.threeLine}</option><option value="3">${T.haloDots}</option><option value="4">${T.haloBands}</option><option value="5">${T.doubleHalo}</option><option value="6">${T.dotContour}</option></select><div class="option-strip" data-select-target="skeletonStyleSelect" role="listbox" aria-label="${T.skeletonStyle}"></div></label>
             <label class="field range-field" for="lineWidth"><span>${T.lineWidth} <output id="lineWidthValue">18</output></span><input id="lineWidth" type="range" min="8" max="48" value="18"></label>
           </section>
