@@ -76,6 +76,10 @@ const cardLayoutInfoNames = [
   "\u83f1\u683c\u586b\u82b1",
   "\u76d8\u7ee6\u8fde\u73af",
 ];
+const publicHiddenLayoutIndexes = new Set(IS_DEVELOPER_VERSION ? [] : [0]);
+const selectableLayoutIndexes = layoutNames
+  .map((_, index) => index)
+  .filter((index) => !publicHiddenLayoutIndexes.has(index));
 const skeletonStyleCardNames = [
   "\u5355\u8272\u7ec6\u9aa8\u7ebf",
   "\u5355\u8272\u590d\u9aa8\u7ebf",
@@ -118,6 +122,7 @@ let ctx = canvas.getContext("2d");
 const statusEl = document.querySelector("#status");
 const patternCodeLabel = document.querySelector("#patternCodeLabel");
 const generateBtn = document.querySelector("#generateBtn");
+const tracebackBtn = document.querySelector("#tracebackBtn");
 const exportBtn = document.querySelector("#exportBtn");
 const exportFullBtn = document.querySelector("#exportFullBtn");
 const cardShareBtn = document.querySelector("#cardShareBtn");
@@ -160,8 +165,21 @@ const skeletonStyleInfo = document.querySelector("#skeletonStyleInfo");
 const groundInfo = document.querySelector("#groundInfo");
 const assetInfo = document.querySelector("#assetInfo");
 
+function getDefaultSkeletonLayout() {
+  return selectableLayoutIndexes[0] ?? 0;
+}
+
+function getRandomSkeletonLayout() {
+  return selectableLayoutIndexes[randomIndex(selectableLayoutIndexes.length)] ?? getDefaultSkeletonLayout();
+}
+
+function normalizeSkeletonLayout(value) {
+  const index = Number(value);
+  return selectableLayoutIndexes.includes(index) ? index : getDefaultSkeletonLayout();
+}
+
 const state = {
-  currentSkeletonLayout: 0,
+  currentSkeletonLayout: getDefaultSkeletonLayout(),
   currentSkeletonStyle: 0,
   lineWidth: DEFAULT_SKELETON_TOTAL_WIDTH,
   drawGround: true,
@@ -178,6 +196,28 @@ const state = {
   shareMode: "card",
   assets: null,
 };
+const standby = {
+  layer: null,
+  pattern: null,
+  text: null,
+  colorCanvas: null,
+  skeletonCanvas: null,
+  groundCanvas: null,
+  motifCanvases: [],
+  timer: null,
+  frame: null,
+  active: false,
+  startedAt: 0,
+  savedState: null,
+  savedColors: null,
+  restoreOnExit: false,
+  textPosition: "bottom-center",
+  tileOffsetX: 0,
+  tileOffsetY: 0,
+};
+const STANDBY_IDLE_MS = 90000;
+const STANDBY_CYCLE_MS = 24000;
+const standbyTextPositions = ["top-left", "top-right", "bottom-left", "bottom-right", "bottom-center"];
 
 function applyTheme(theme) {
   const nextTheme = theme === "light" ? "light" : "dark";
@@ -194,6 +234,28 @@ function applyTheme(theme) {
   } catch {
     // Ignore storage errors in private or locked browsing contexts.
   }
+}
+
+function snapshotPatternState() {
+  return {
+    currentSkeletonLayout: state.currentSkeletonLayout,
+    currentSkeletonStyle: state.currentSkeletonStyle,
+    lineWidth: state.lineWidth,
+    drawGround: state.drawGround,
+    groundSize: state.groundSize,
+    groundOpacity: state.groundOpacity,
+    groundStrokeScale: state.groundStrokeScale,
+    groundColor: state.groundColor,
+    backgroundColor: state.backgroundColor,
+    idxGround: state.idxGround,
+    idxSub: state.idxSub,
+    idxMain: state.idxMain,
+  };
+}
+
+function restorePatternState(snapshot) {
+  if (!snapshot) return;
+  Object.assign(state, snapshot);
 }
 
 function initTheme() {
@@ -230,6 +292,7 @@ function makeAssetList() {
 
 function setBusy(isBusy) {
   generateBtn.disabled = isBusy;
+  if (tracebackBtn) tracebackBtn.disabled = isBusy;
   if (exportBtn) exportBtn.disabled = isBusy;
   if (exportFullBtn) exportFullBtn.disabled = isBusy;
   if (cardShareBtn) cardShareBtn.disabled = isBusy;
@@ -393,6 +456,55 @@ function randomColor() {
 
 function normalizeHex(value) {
   return value.toUpperCase();
+}
+
+function normalizeHexColor(value) {
+  const text = String(value || "").trim().replace(/^#/, "").toUpperCase();
+  return /^[0-9A-F]{6}$/.test(text) ? `#${text}` : null;
+}
+
+function fromCodeNumber(value) {
+  const parsed = parseInt(value, 36);
+  if (!Number.isFinite(parsed)) {
+    throw new Error("\u7f16\u53f7\u683c\u5f0f\u65e0\u6548");
+  }
+  return parsed;
+}
+
+const patternCodeFields = [
+  ["layout", 4],
+  ["skeletonStyle", 3],
+  ["lineWidth", 6],
+  ["drawGround", 1],
+  ["idxGround", 3],
+  ["idxSub", 4],
+  ["idxMain", 4],
+  ["groundSizeTenths", 5],
+  ["groundOpacityPercent", 7],
+  ["groundStrokeTenths", 6],
+];
+const COMPACT_PATTERN_CODE_WIDTH = 41;
+
+function appendPackedValue(payload, value, bits) {
+  return (payload << BigInt(bits)) | BigInt(Math.max(0, Math.round(Number(value))));
+}
+
+function readPackedValue(payload, bits) {
+  const mask = (1n << BigInt(bits)) - 1n;
+  return {
+    value: Number(payload & mask),
+    next: payload >> BigInt(bits),
+  };
+}
+
+function base36ToBigInt(value) {
+  return String(value).split("").reduce((total, char) => {
+    const digit = parseInt(char, 36);
+    if (!Number.isInteger(digit) || digit < 0 || digit >= 36) {
+      throw new Error("\u7f16\u53f7\u683c\u5f0f\u65e0\u6548");
+    }
+    return total * 36n + BigInt(digit);
+  }, 0n);
 }
 
 function isLightColor(hex) {
@@ -646,7 +758,7 @@ function svgTextToMonoLineDataUrl(svgText) {
     if (node.tagName.toLowerCase() === "defs") return;
     node.setAttribute("fill", "none");
     node.setAttribute("stroke", "#111111");
-    node.setAttribute("stroke-width", "2");
+    node.setAttribute("stroke-width", "1.1");
     node.setAttribute("stroke-opacity", "1");
     node.setAttribute("vector-effect", "non-scaling-stroke");
     node.removeAttribute("opacity");
@@ -717,25 +829,142 @@ function updateGroundPreview() {
 }
 
 function getPatternId() {
-  const parts = [
-    state.currentSkeletonLayout,
-    state.currentSkeletonStyle,
-    state.lineWidth,
-    state.drawGround ? 1 : 0,
-    state.drawGround ? state.idxGround : 0,
-    state.idxSub,
-    state.idxMain,
-    state.groundSize,
-    Math.round(state.groundOpacity * 100),
-    Math.round(state.groundStrokeScale * 10),
-    targetColors.indexOf(state.groundColor),
-    targetColors.indexOf(state.backgroundColor),
-  ];
-  let hash = 0;
-  parts.join("-").split("").forEach((char) => {
-    hash = ((hash * 31) + char.charCodeAt(0)) >>> 0;
+  if (!IS_DEVELOPER_VERSION) {
+    const parts = [
+      state.currentSkeletonLayout,
+      state.currentSkeletonStyle,
+      state.lineWidth,
+      state.drawGround ? 1 : 0,
+      state.drawGround ? state.idxGround : 0,
+      state.idxSub,
+      state.idxMain,
+      state.groundSize,
+      Math.round(state.groundOpacity * 100),
+      Math.round(state.groundStrokeScale * 10),
+      targetColors.indexOf(state.groundColor),
+      targetColors.indexOf(state.backgroundColor),
+    ];
+    let hash = 0;
+    parts.join("-").split("").forEach((char) => {
+      hash = ((hash * 31) + char.charCodeAt(0)) >>> 0;
+    });
+    return `JXNS-${hash.toString(36).toUpperCase().padStart(6, "0").slice(-6)}`;
+  }
+
+  const data = {
+    layout: state.currentSkeletonLayout,
+    skeletonStyle: state.currentSkeletonStyle,
+    lineWidth: state.lineWidth,
+    drawGround: state.drawGround ? 1 : 0,
+    idxGround: state.drawGround ? state.idxGround : 0,
+    idxSub: state.idxSub,
+    idxMain: state.idxMain,
+    groundSizeTenths: Math.round(state.groundSize * 10),
+    groundOpacityPercent: Math.round(state.groundOpacity * 100),
+    groundStrokeTenths: Math.round(state.groundStrokeScale * 10),
+  };
+  const colors = [...targetColors, state.groundColor, state.backgroundColor]
+    .map((color) => parseInt((normalizeHexColor(color) || "#000000").slice(1), 16));
+  let payload = 0n;
+
+  patternCodeFields.forEach(([key, bits]) => {
+    payload = appendPackedValue(payload, data[key], bits);
   });
-  return `JXNS-${hash.toString(36).toUpperCase().padStart(6, "0").slice(-6)}`;
+  colors.forEach((color) => {
+    payload = appendPackedValue(payload, color, 24);
+  });
+
+  return `BRBN-${payload.toString(36).toUpperCase().padStart(COMPACT_PATTERN_CODE_WIDTH, "0")}`;
+}
+
+function validatePatternData(data) {
+  if (!selectableLayoutIndexes.includes(data.layout)) {
+    throw new Error("\u5f53\u524d\u7248\u672c\u4e0d\u652f\u6301\u8fd9\u4e2a\u9aa8\u67b6\u7f16\u53f7");
+  }
+  if (data.skeletonStyle < 0 || data.skeletonStyle >= skeletonStyleNames.length) throw new Error("\u9aa8\u67b6\u7ebf\u578b\u7f16\u53f7\u65e0\u6548");
+  if (data.idxGround < 0 || data.idxGround >= groundTextureMeta.length) throw new Error("\u5730\u7eb9\u7f16\u53f7\u65e0\u6548");
+  if (data.idxSub < 0 || data.idxSub >= SUB_MOTIF_NUM || data.idxMain < 0 || data.idxMain >= MAIN_MOTIF_NUM) throw new Error("\u56fe\u5143\u7f16\u53f7\u65e0\u6548");
+
+  return data;
+}
+
+function parseCompactPatternId(cleaned) {
+  const match = cleaned.match(/^BRBN-?([0-9A-Z]{1,41})$/);
+  if (!match) return null;
+
+  let payload = base36ToBigInt(match[1]);
+  const colors = Array(7);
+  for (let index = 6; index >= 0; index -= 1) {
+    const result = readPackedValue(payload, 24);
+    colors[index] = `#${result.value.toString(16).toUpperCase().padStart(6, "0")}`;
+    payload = result.next;
+  }
+
+  const values = {};
+  [...patternCodeFields].reverse().forEach(([key, bits]) => {
+    const result = readPackedValue(payload, bits);
+    values[key] = result.value;
+    payload = result.next;
+  });
+  if (payload !== 0n) throw new Error("\u7f16\u53f7\u683c\u5f0f\u65e0\u6548");
+
+  return validatePatternData({
+    layout: values.layout,
+    skeletonStyle: values.skeletonStyle,
+    lineWidth: Math.min(48, Math.max(8, values.lineWidth)),
+    drawGround: values.drawGround === 1,
+    idxGround: values.idxGround,
+    idxSub: values.idxSub,
+    idxMain: values.idxMain,
+    groundSize: normalizeGroundScale(values.groundSizeTenths / 10),
+    groundOpacity: Math.min(1, Math.max(0.1, values.groundOpacityPercent / 100)),
+    groundStrokeScale: Math.min(4, Math.max(0.4, values.groundStrokeTenths / 10)),
+    paletteColors: colors.slice(0, 5),
+    groundColor: colors[5],
+    backgroundColor: colors[6],
+  });
+}
+
+function parseLegacyPatternId(cleaned) {
+  const match = cleaned.match(/^JXNS1-([0-9A-Z.]+)-([0-9A-F]{42})$/);
+  if (!match) return null;
+
+  const values = match[1].split(".").map(fromCodeNumber);
+  if (values.length !== 10) {
+    throw new Error("\u7f16\u53f7\u53c2\u6570\u4e0d\u5b8c\u6574");
+  }
+
+  const [layout, skeletonStyle, lineWidth, drawGround, idxGround, idxSub, idxMain, groundSizeTenths, groundOpacityPercent, groundStrokeTenths] = values;
+  const colorText = match[2];
+  const colors = [];
+  for (let index = 0; index < 7; index += 1) {
+    colors.push(`#${colorText.slice(index * 6, index * 6 + 6)}`);
+  }
+
+  return validatePatternData({
+    layout,
+    skeletonStyle,
+    lineWidth: Math.min(48, Math.max(8, lineWidth)),
+    drawGround: drawGround === 1,
+    idxGround,
+    idxSub,
+    idxMain,
+    groundSize: normalizeGroundScale(groundSizeTenths / 10),
+    groundOpacity: Math.min(1, Math.max(0.1, groundOpacityPercent / 100)),
+    groundStrokeScale: Math.min(4, Math.max(0.4, groundStrokeTenths / 10)),
+    paletteColors: colors.slice(0, 5),
+    groundColor: colors[5],
+    backgroundColor: colors[6],
+  });
+}
+
+function parsePatternId(patternId) {
+  const cleaned = String(patternId || "").trim().toUpperCase().replace(/^PATTERN\s*\/\s*/, "").replace(/\s+/g, "");
+  const parsed = parseCompactPatternId(cleaned) || parseLegacyPatternId(cleaned);
+  if (!parsed) {
+    throw new Error("\u8bf7\u8f93\u5165 BRBN \u7f16\u53f7\uff1b\u65e7\u7248 JXNS \u77ed\u7f16\u53f7\u65e0\u6cd5\u53cd\u89e3");
+  }
+  return parsed;
 }
 
 function updatePatternCodeLabel() {
@@ -1120,6 +1349,19 @@ function initOptionStrips() {
     strip.replaceChildren(...Array.from(select.options).map((option) => createOptionChip(option, select)));
     syncOptionStrip(strip);
   });
+}
+
+function configurePublicLayoutOptions() {
+  if (!layoutSelect || IS_DEVELOPER_VERSION) return;
+
+  Array.from(layoutSelect.options).forEach((option) => {
+    if (option.value !== "random" && publicHiddenLayoutIndexes.has(Number(option.value))) {
+      option.remove();
+    }
+  });
+  if (layoutSelect.value !== "random") {
+    layoutSelect.value = String(normalizeSkeletonLayout(layoutSelect.value));
+  }
 }
 
 function svgTextToImage(svgText) {
@@ -2599,7 +2841,7 @@ function randomizeParameters() {
   state.groundStrokeScale = Number(groundStrokeInput.value) / 10;
   state.groundColor = groundColorSelect.value === "random" ? randomColor() : groundColorSelect.value;
   state.backgroundColor = backgroundColorSelect.value === "random" ? randomColor() : backgroundColorSelect.value;
-  state.currentSkeletonLayout = layoutValue === "random" ? randomIndex(layoutNames.length) : Number(layoutValue);
+  state.currentSkeletonLayout = layoutValue === "random" ? getRandomSkeletonLayout() : normalizeSkeletonLayout(layoutValue);
   state.currentSkeletonStyle = skeletonStyleValue === "random" ? randomIndex(skeletonStyleNames.length) : Number(skeletonStyleValue);
 
   applyGroundTypeValue(groundValue);
@@ -2725,6 +2967,76 @@ function resetFilters() {
   syncOptionStrips();
 }
 
+async function applyPatternTracebackCode(patternId) {
+  const data = parsePatternId(patternId);
+
+  targetColors = data.paletteColors.map(normalizeHex);
+  currentPaletteKey = isDefaultPalette() ? "built-in-0" : "custom";
+  if (paletteNameInput && !isDefaultPalette()) {
+    paletteNameInput.value = "\u7f16\u53f7\u56de\u6eaf\u8272\u7cfb";
+  }
+
+  layoutSelect.value = String(data.layout);
+  skeletonStyleSelect.value = String(data.skeletonStyle);
+  lineWidthInput.value = String(data.lineWidth);
+  lineWidthValue.textContent = String(data.lineWidth);
+  groundSizeInput.value = String(data.groundSize);
+  groundSizeValue.textContent = data.groundSize.toFixed(1);
+  groundOpacityInput.value = String(Math.round(data.groundOpacity * 100));
+  groundOpacityValue.textContent = String(Math.round(data.groundOpacity * 100));
+  groundStrokeInput.value = String(Math.round(data.groundStrokeScale * 10));
+  groundStrokeValue.textContent = data.groundStrokeScale.toFixed(1);
+
+  const groundModeValue = data.drawGround ? groundTextureMeta[data.idxGround]?.file : "none";
+  const groundModeInput = document.querySelector(`input[name='groundMode'][value='${groundModeValue}']`);
+  if (groundModeInput) groundModeInput.checked = true;
+
+  syncPaletteInputs();
+  updateColorOptionValues();
+  groundColorSelect.value = data.groundColor;
+  backgroundColorSelect.value = data.backgroundColor;
+  applyRandomChipGradient();
+  initOptionStrips();
+
+  state.currentSkeletonLayout = data.layout;
+  state.currentSkeletonStyle = data.skeletonStyle;
+  state.lineWidth = data.lineWidth;
+  state.drawGround = data.drawGround;
+  state.idxGround = data.idxGround;
+  state.idxSub = data.idxSub;
+  state.idxMain = data.idxMain;
+  state.groundSize = data.groundSize;
+  state.groundOpacity = data.groundOpacity;
+  state.groundStrokeScale = data.groundStrokeScale;
+  state.groundColor = data.groundColor;
+  state.backgroundColor = data.backgroundColor;
+
+  setBusy(true);
+  setStatus("\u6b63\u5728\u56de\u6eaf\u7f16\u53f7...");
+  try {
+    await refreshAllAssets();
+    renderPattern();
+    updateInfoPanel();
+    setStatus("\u5df2\u56de\u6eaf\u5230\u8be5\u7f16\u53f7\u7684\u642d\u914d\u3002");
+    window.setTimeout(() => setStatus(""), 2200);
+  } finally {
+    setBusy(false);
+  }
+}
+
+function openPatternTracebackPrompt() {
+  if (!IS_DEVELOPER_VERSION) return;
+
+  const value = window.prompt("\u8bf7\u8f93\u5165\u8981\u56de\u6eaf\u7684\u7f16\u53f7", getPatternId());
+  if (!value) return;
+
+  applyPatternTracebackCode(value).catch((error) => {
+    console.error(error);
+    setStatus(error.message || "\u7f16\u53f7\u56de\u6eaf\u5931\u8d25\u3002");
+    window.setTimeout(() => setStatus(""), 3600);
+  });
+}
+
 function getExportLayerState() {
   const layers = {
     background: true,
@@ -2772,6 +3084,276 @@ function makeSharePatternCanvas(layers = null) {
   const outputCtx = outputCanvas.getContext("2d");
   outputCtx.drawImage(baseCanvas, 0, 0, SHARE_EXPORT_WIDTH, SHARE_EXPORT_WIDTH);
   return outputCanvas;
+}
+
+function createStandbyLayer() {
+  if (standby.layer) return standby.layer;
+
+  const layer = document.createElement("div");
+  layer.id = "standbyScreensaver";
+  layer.className = "standby-screensaver";
+  layer.setAttribute("aria-hidden", "true");
+  layer.innerHTML = `
+    <div class="standby-field" aria-hidden="true">
+      <div class="standby-pattern">
+        <canvas class="standby-canvas standby-color" width="${CANVAS_SIZE}" height="${CANVAS_SIZE}"></canvas>
+        <canvas class="standby-canvas standby-skeleton" width="${CANVAS_SIZE}" height="${CANVAS_SIZE}"></canvas>
+        <canvas class="standby-canvas standby-ground" width="${CANVAS_SIZE}" height="${CANVAS_SIZE}"></canvas>
+        <div class="standby-motifs"></div>
+      </div>
+      <div class="standby-copy" data-position="bottom-center">
+        <div>DIGITAL LOOM STANDBY</div>
+        <div>TOUCH TO CONTINUE</div>
+        <span>\u6570\u5b57\u7ec7\u673a\u5f85\u673a\u4e2d</span>
+        <span>\u89e6\u6478\u7ee7\u7eed\u751f\u6210</span>
+      </div>
+    </div>`;
+
+  document.body.appendChild(layer);
+  standby.layer = layer;
+  standby.pattern = layer.querySelector(".standby-pattern");
+  standby.text = layer.querySelector(".standby-copy");
+  standby.colorCanvas = layer.querySelector(".standby-color");
+  standby.skeletonCanvas = layer.querySelector(".standby-skeleton");
+  standby.groundCanvas = layer.querySelector(".standby-ground");
+  return layer;
+}
+
+function makeStandbyTile(layers, transparent = true) {
+  const tile = document.createElement("canvas");
+  tile.width = CANVAS_SIZE;
+  tile.height = CANVAS_SIZE;
+  const tileCtx = tile.getContext("2d");
+  tileCtx.clearRect(0, 0, tile.width, tile.height);
+  renderPattern({
+    targetCanvas: tile,
+    transparent,
+    layers,
+  });
+  return tile;
+}
+
+function sizeStandbyCanvas(canvas) {
+  canvas.width = Math.max(1, Math.ceil(window.innerWidth));
+  canvas.height = Math.max(1, Math.ceil(window.innerHeight));
+  canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function drawStandbyTiledLayer(targetCanvas, tileCanvas) {
+  sizeStandbyCanvas(targetCanvas);
+  const targetCtx = targetCanvas.getContext("2d");
+  const pattern = targetCtx.createPattern(tileCanvas, "repeat");
+  targetCtx.clearRect(0, 0, targetCanvas.width, targetCanvas.height);
+  targetCtx.save();
+  targetCtx.translate(-standby.tileOffsetX, -standby.tileOffsetY);
+  if (pattern) {
+    targetCtx.fillStyle = pattern;
+    targetCtx.fillRect(
+      standby.tileOffsetX,
+      standby.tileOffsetY,
+      targetCanvas.width + CANVAS_SIZE,
+      targetCanvas.height + CANVAS_SIZE,
+    );
+  }
+  targetCtx.restore();
+}
+
+function drawStandbyMotifDiagonalCanvases() {
+  const motifWrap = standby.layer.querySelector(".standby-motifs");
+  const viewportWidth = Math.max(1, Math.ceil(window.innerWidth));
+  const viewportHeight = Math.max(1, Math.ceil(window.innerHeight));
+  const startX = -((standby.tileOffsetX % TILE_SIZE) + TILE_SIZE);
+  const startY = -((standby.tileOffsetY % TILE_SIZE) + TILE_SIZE);
+  const cols = Math.ceil((viewportWidth - startX) / TILE_SIZE) + 1;
+  const rows = Math.ceil((viewportHeight - startY) / TILE_SIZE) + 1;
+  const diagonals = Array.from({ length: cols + rows - 1 }, () => []);
+  const previousCtx = ctx;
+
+  motifWrap.replaceChildren();
+  standby.motifCanvases = [];
+  for (let row = 0; row < rows; row += 1) {
+    for (let col = 0; col < cols; col += 1) {
+      diagonals[row + col].push([
+        startX + col * TILE_SIZE,
+        startY + row * TILE_SIZE,
+      ]);
+    }
+  }
+
+  diagonals.forEach((points, index) => {
+    const motifCanvas = document.createElement("canvas");
+    sizeStandbyCanvas(motifCanvas);
+    motifCanvas.className = "standby-canvas standby-motif";
+    motifCanvas.dataset.diagonal = String(index);
+  const motifCtx = motifCanvas.getContext("2d");
+  motifCtx.clearRect(0, 0, motifCanvas.width, motifCanvas.height);
+  motifCtx.globalCompositeOperation = "source-over";
+    ctx = motifCtx;
+    points.forEach(([x, y]) => {
+      drawMotifsAtCell(x, y);
+    });
+    motifWrap.append(motifCanvas);
+    standby.motifCanvases.push(motifCanvas);
+  });
+  ctx = previousCtx;
+}
+
+function randomStandbyPalette() {
+  const palette = builtInPalettes[randomIndex(builtInPalettes.length)].colors;
+  return palette.map((color) => normalizeHex(color));
+}
+
+async function prepareStandbyPattern() {
+  standby.textPosition = standbyTextPositions[randomIndex(standbyTextPositions.length)];
+  standby.text.dataset.position = standby.textPosition;
+  targetColors = randomStandbyPalette();
+  applyRandomChipGradient();
+
+  state.currentSkeletonLayout = getRandomSkeletonLayout();
+  state.currentSkeletonStyle = randomIndex(skeletonStyleNames.length);
+  state.lineWidth = 10 + randomIndex(15);
+  state.drawGround = true;
+  state.groundSize = [0.8, 0.9, 1, 1.1, 1.2][randomIndex(5)];
+  state.groundOpacity = 0.28 + randomIndex(26) / 100;
+  state.groundStrokeScale = 0.8 + randomIndex(11) / 10;
+  state.idxGround = randomIndex(groundTextureMeta.length);
+  state.idxSub = randomIndex(SUB_MOTIF_NUM);
+  state.idxMain = randomIndex(MAIN_MOTIF_NUM);
+  state.groundColor = targetColors[[0, 1, 3][randomIndex(3)]];
+  state.backgroundColor = targetColors[2];
+  standby.tileOffsetX = randomIndex(CANVAS_SIZE);
+  standby.tileOffsetY = randomIndex(CANVAS_SIZE);
+  standby.layer.style.setProperty("--standby-ground", state.backgroundColor);
+  standby.layer.classList.toggle("is-dark-ground", !isLightColor(state.backgroundColor));
+  standby.layer.classList.toggle("is-light-ground", isLightColor(state.backgroundColor));
+
+  await refreshAllAssets();
+  if (!standby.active) return;
+  drawStandbyTiledLayer(standby.colorCanvas, makeStandbyTile({ background: true, ground: false, skeleton: false, motifs: false }, false));
+  drawStandbyTiledLayer(standby.skeletonCanvas, makeStandbyTile({ background: false, ground: false, skeleton: true, motifs: false }, true));
+  drawStandbyTiledLayer(standby.groundCanvas, makeStandbyTile({ background: false, ground: true, skeleton: false, motifs: false }, true));
+  drawStandbyMotifDiagonalCanvases();
+}
+
+function easeInOut(value) {
+  const t = Math.min(1, Math.max(0, value));
+  return t * t * (3 - 2 * t);
+}
+
+function setStandbyFrame(progress) {
+  const colorIn = easeInOut(Math.min(progress / 0.1, 1));
+  const colorOut = easeInOut(Math.min(Math.max((progress - 0.97) / 0.03, 0), 1));
+  const colorVisible = progress < 0.97 ? colorIn : 1 - colorOut;
+  const skeletonIn = easeInOut(Math.min(Math.max((progress - 0.08) / 0.28, 0), 1));
+  const skeletonOut = easeInOut(Math.min(Math.max((progress - 0.92) / 0.05, 0), 1));
+  const groundIn = easeInOut(Math.min(Math.max((progress - 0.22) / 0.16, 0), 1));
+  const groundOut = easeInOut(Math.min(Math.max((progress - 0.86) / 0.06, 0), 1));
+  const motifPhaseEnd = 0.72;
+  const motifFadeStart = 0.74;
+  const layerExitStart = 0.86;
+  const skeletonVisible = progress < layerExitStart ? skeletonIn : 1 - skeletonOut;
+  const skeletonClip = skeletonVisible * 100;
+  const groundVisible = progress < layerExitStart ? groundIn : 1 - groundOut;
+
+  standby.colorCanvas.style.opacity = String(colorVisible * 0.9);
+  standby.skeletonCanvas.style.opacity = String(skeletonVisible * 0.72);
+  standby.skeletonCanvas.style.clipPath = `inset(0 0 ${100 - skeletonClip}% 0)`;
+  standby.groundCanvas.style.opacity = String(groundVisible * 0.5);
+  standby.text.style.opacity = String(0.24 + colorVisible * 0.34);
+
+  const count = Math.max(1, standby.motifCanvases.length);
+  const appearStep = count > 1 ? 0.24 / (count - 1) : 0;
+  const disappearStep = count > 1 ? 0.1 / (count - 1) : 0;
+  standby.motifCanvases.forEach((motifCanvas, index) => {
+    const appearStart = 0.34 + index * appearStep;
+    const appear = easeInOut(Math.min(Math.max((progress - appearStart) / 0.1, 0), 1));
+    const disappearIndex = count - index - 1;
+    const disappearStart = motifFadeStart + disappearIndex * disappearStep;
+    const disappear = easeInOut(Math.min(Math.max((progress - disappearStart) / 0.08, 0), 1));
+    motifCanvas.style.opacity = String((progress < motifPhaseEnd ? appear : 1 - disappear) * 0.84);
+  });
+}
+
+async function runStandbyCycle() {
+  if (!standby.active) return;
+  await prepareStandbyPattern();
+  if (!standby.active) return;
+  standby.startedAt = performance.now();
+
+  const animate = (time) => {
+    if (!standby.active) return;
+    const progress = Math.min(1, (time - standby.startedAt) / STANDBY_CYCLE_MS);
+    setStandbyFrame(progress);
+    if (progress >= 1) {
+      window.setTimeout(() => {
+        if (standby.active) runStandbyCycle();
+      }, 700);
+      return;
+    }
+    standby.frame = window.requestAnimationFrame(animate);
+  };
+  standby.frame = window.requestAnimationFrame(animate);
+}
+
+function restoreFromStandby() {
+  if (!standby.restoreOnExit || !standby.savedColors) return;
+  targetColors = [...standby.savedColors];
+  restorePatternState(standby.savedState);
+  standby.restoreOnExit = false;
+  syncPaletteInputs();
+  updateColorOptionValues();
+  applyRandomChipGradient();
+  refreshAllAssets().then(() => {
+    renderPattern();
+    updateInfoPanel();
+  });
+}
+
+function enterStandbyMode() {
+  if (standby.active || !state.assets) return;
+  createStandbyLayer();
+  standby.savedState = snapshotPatternState();
+  standby.savedColors = [...targetColors];
+  standby.restoreOnExit = true;
+  standby.active = true;
+  document.body.classList.add("is-standby-active");
+  standby.layer.setAttribute("aria-hidden", "false");
+  runStandbyCycle().catch((error) => {
+    console.error(error);
+    exitStandbyMode();
+  });
+}
+
+function exitStandbyMode() {
+  if (!standby.active) return;
+  standby.active = false;
+  window.cancelAnimationFrame(standby.frame);
+  document.body.classList.remove("is-standby-active");
+  if (standby.layer) standby.layer.setAttribute("aria-hidden", "true");
+  restoreFromStandby();
+}
+
+function restartStandbyTimer() {
+  window.clearTimeout(standby.timer);
+  standby.timer = window.setTimeout(enterStandbyMode, STANDBY_IDLE_MS);
+}
+
+function installStandbyScreensaver() {
+  createStandbyLayer();
+  ["click", "touchstart", "touchmove", "mousemove", "keydown", "scroll"].forEach((eventName) => {
+    window.addEventListener(eventName, () => {
+      if (standby.active) {
+        exitStandbyMode();
+      }
+      restartStandbyTimer();
+    }, { passive: true, capture: true });
+  });
+  window.addEventListener("resize", () => {
+    if (standby.active) {
+      prepareStandbyPattern().catch((error) => console.error(error));
+    }
+  }, { passive: true });
+  restartStandbyTimer();
 }
 
 const exportLayerOrder = [
@@ -4113,6 +4695,9 @@ resetBtn.addEventListener("click", () => {
   resetFilters();
   generatePattern();
 });
+if (tracebackBtn && IS_DEVELOPER_VERSION) {
+  tracebackBtn.addEventListener("click", openPatternTracebackPrompt);
+}
 if (infoBtn) {
   infoBtn.addEventListener("click", () => {
     showPage("info");
@@ -4208,8 +4793,10 @@ renderPalettePresetOptions();
   syncPaletteInputs();
   updateColorOptionValues();
   applyRandomChipGradient();
+  configurePublicLayoutOptions();
   initOptionStrips();
   preventPreviewLabelJump(groundColorPreview);
   preventPreviewLabelJump(backgroundColorPreview);
+  installStandbyScreensaver();
 
 boot();
