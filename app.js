@@ -484,6 +484,79 @@ const patternCodeFields = [
   ["groundStrokeTenths", 6],
 ];
 const COMPACT_PATTERN_CODE_WIDTH = 41;
+const ANALYTICS_ENDPOINT = "/.netlify/functions/analytics";
+const ANALYTICS_VISITOR_KEY = "songBrocadeVisitorId";
+let visitTracked = false;
+
+function getVisitorId() {
+  try {
+    const saved = localStorage.getItem(ANALYTICS_VISITOR_KEY);
+    if (saved) return saved;
+    const next = (crypto && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : `visitor-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+    localStorage.setItem(ANALYTICS_VISITOR_KEY, next);
+    return next;
+  } catch {
+    return "visitor-storage-unavailable";
+  }
+}
+
+function getPatternAnalyticsPayload(extra = {}) {
+  return {
+    patternId: getPatternId(),
+    appMode: APP_MODE,
+    paletteColors: targetColors.map(normalizeHexColor).filter(Boolean),
+    groundColor: normalizeHexColor(state.groundColor),
+    backgroundColor: normalizeHexColor(state.backgroundColor),
+    skeletonLayout: state.currentSkeletonLayout,
+    skeletonLayoutName: layoutNames[state.currentSkeletonLayout] || "",
+    skeletonStyle: state.currentSkeletonStyle,
+    skeletonStyleName: skeletonStyleNames[state.currentSkeletonStyle] || "",
+    lineWidth: state.lineWidth,
+    drawGround: state.drawGround,
+    groundTexture: state.drawGround ? state.idxGround : null,
+    groundTextureName: state.drawGround ? (groundTextureMeta[state.idxGround]?.displayName || "") : "",
+    groundSize: state.groundSize,
+    groundOpacity: state.groundOpacity,
+    groundStrokeScale: state.groundStrokeScale,
+    subMotif: state.idxSub,
+    mainMotif: state.idxMain,
+    ...extra,
+  };
+}
+
+function trackAnalyticsEvent(eventType, payload = {}) {
+  const body = JSON.stringify({
+    eventType,
+    visitorId: getVisitorId(),
+    page: location.pathname || "/",
+    referrer: document.referrer || "",
+    userAgent: navigator.userAgent || "",
+    language: navigator.language || "",
+    screen: {
+      width: window.screen?.width || null,
+      height: window.screen?.height || null,
+      pixelRatio: window.devicePixelRatio || 1,
+    },
+    payload,
+  });
+
+  try {
+    if (navigator.sendBeacon) {
+      const sent = navigator.sendBeacon(ANALYTICS_ENDPOINT, new Blob([body], { type: "application/json" }));
+      if (sent) return;
+    }
+    fetch(ANALYTICS_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body,
+      keepalive: true,
+    }).catch(() => {});
+  } catch {
+    // Analytics must never block the pattern tool.
+  }
+}
 
 function appendPackedValue(payload, value, bits) {
   return (payload << BigInt(bits)) | BigInt(Math.max(0, Math.round(Number(value))));
@@ -642,6 +715,7 @@ function saveCurrentPalette() {
   if (palettePresetSelect) {
     palettePresetSelect.value = `saved-${saved.findIndex((palette) => palette.name === name)}`;
   }
+  trackAnalyticsEvent("save_palette", getPatternAnalyticsPayload({ paletteName: name }));
 }
 
 function renameCurrentPalette() {
@@ -3812,6 +3886,12 @@ async function saveCurrentShareImage() {
     return;
   }
   downloadBlob(blob, getCurrentShareFileName());
+  trackAnalyticsEvent("save_share_image", getPatternAnalyticsPayload({
+    shareMode: state.shareMode,
+    cardStyle: state.recipeCardStyle,
+    cardTheme: state.recipeCardTheme,
+    fileName: getCurrentShareFileName(),
+  }));
   setShareDialogNotice(`\u5df2\u751f\u6210 ${SHARE_EXPORT_WIDTH}px \u5bbd\u7684\u4e0b\u8f7d\u56fe\u7247\u3002`);
 }
 
@@ -4564,6 +4644,13 @@ async function boot() {
     setStatus("\u6b63\u5728\u8f7d\u5165\u7d20\u6750...");
     state.assets = await loadAssets();
     generatePattern();
+    if (!visitTracked) {
+      visitTracked = true;
+      trackAnalyticsEvent("visit", {
+        appMode: APP_MODE,
+        initialPattern: getPatternAnalyticsPayload(),
+      });
+    }
   } catch (error) {
     console.error(error);
     setStatus(`${error.message}\u3002\u5982\u679c\u5728 iPad \u4e0a\u4f7f\u7528\uff0c\u8bf7\u6253\u5f00\u65b0\u7248\u79bb\u7ebf\u5305\u91cc\u7684 index.html\u3002`);
